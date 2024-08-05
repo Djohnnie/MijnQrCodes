@@ -1,0 +1,49 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.10.35013.160
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MijnQrCodes.Api", "MijnQrCodes.Api\MijnQrCodes.Api.csproj", "{494C44FD-1EE2-4E2A-AB00-3EB2037DFF40}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MijnQrCodes.Domain", "MijnQrCodes.Domain\MijnQrCodes.Domain.csproj", "{DE11281F-C9BD-439C-8069-1F07113CDB41}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MijnQrCodes.Infrastructure", "MijnQrCodes.Infrastructure\MijnQrCodes.Infrastructure.csproj", "{41094CAE-34BF-4129-8501-E60B840C8AC0}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MijnQrCodes.Application", "MijnQrCodes.Application\MijnQrCodes.Application.csproj", "{084400B4-A674-47D3-B0D5-A862C57A4959}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MijnQrCodes.Web", "MijnQrCodes.Web\MijnQrCodes.Web.csproj", "{A6E90B7A-C9D0-48ED-9E44-06A98B95054D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{494C44FD-1EE2-4E2A-AB00-3EB2037DFF40}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{494C44FD-1EE2-4E2A-AB00-3EB2037DFF40}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{494C44FD-1EE2-4E2A-AB00-3EB2037DFF40}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{494C44FD-1EE2-4E2A-AB00-3EB2037DFF40}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE11281F-C9BD-439C-8069-1F07113CDB41}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE11281F-C9BD-439C-8069-1F07113CDB41}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE11281F-C9BD-439C-8069-1F07113CDB41}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE11281F-C9BD-439C-8069-1F07113CDB41}.Release|Any CPU.Build.0 = Release|Any CPU
+		{41094CAE-34BF-4129-8501-E60B840C8AC0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{41094CAE-34BF-4129-8501-E60B840C8AC0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{41094CAE-34BF-4129-8501-E60B840C8AC0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{41094CAE-34BF-4129-8501-E60B840C8AC0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{084400B4-A674-47D3-B0D5-A862C57A4959}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{084400B4-A674-47D3-B0D5-A862C57A4959}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{084400B4-A674-47D3-B0D5-A862C57A4959}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{084400B4-A674-47D3-B0D5-A862C57A4959}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A6E90B7A-C9D0-48ED-9E44-06A98B95054D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A6E90B7A-C9D0-48ED-9E44-06A98B95054D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A6E90B7A-C9D0-48ED-9E44-06A98B95054D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A6E90B7A-C9D0-48ED-9E44-06A98B95054D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {78B09A4E-8846-4C52-981A-385728ED3349}
+	EndGlobalSection
+EndGlobal
