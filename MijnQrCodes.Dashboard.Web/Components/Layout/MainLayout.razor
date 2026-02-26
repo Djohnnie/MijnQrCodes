@@ -5,19 +5,38 @@
 
 <MudLayout>
     <MudAppBar Elevation="1" Color="Color.Primary">
-        <MudIcon Icon="@Icons.Material.Filled.QrCode2" Class="mr-2" />
-        <MudText Typo="Typo.h6">MijnQrCodes</MudText>
-        <MudSpacer />
         <AuthorizeView>
             <Authorized>
-                <MudButton Href="/" Color="Color.Inherit" Variant="Variant.Text">URL's</MudButton>
-                <MudButton Href="/users" Color="Color.Inherit" Variant="Variant.Text">Gebruikers</MudButton>
-                <MudButton Href="/logout" Color="Color.Inherit" Variant="Variant.Text"
-                           StartIcon="@Icons.Material.Filled.Logout">Afmelden</MudButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit"
+                               OnClick="ToggleDrawer" aria-label="Menu" />
             </Authorized>
         </AuthorizeView>
+        <MudIcon Icon="@Icons.Material.Filled.QrCode2" Class="mr-2" />
+        <MudText Typo="Typo.h6">MijnQrCodes</MudText>
     </MudAppBar>
-    <MudMainContent Class="pt-16">
+    <AuthorizeView>
+        <Authorized>
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="1" ClipMode="DrawerClipMode.Always">
+                <MudNavMenu>
+                    <MudNavLink Href="/" Match="NavLinkMatch.All"
+                                Icon="@Icons.Material.Filled.Link">URL's</MudNavLink>
+                    <MudNavLink Href="/users" Match="NavLinkMatch.Prefix"
+                                Icon="@Icons.Material.Filled.People">Gebruikers</MudNavLink>
+                </MudNavMenu>
+                <MudSpacer />
+                <MudNavMenu>
+                    <MudNavLink Href="/logout" Icon="@Icons.Material.Filled.Logout">Afmelden</MudNavLink>
+                </MudNavMenu>
+            </MudDrawer>
+        </Authorized>
+    </AuthorizeView>
+    <MudMainContent>
         @Body
     </MudMainContent>
 </MudLayout>
+
+@code {
+    private bool _drawerOpen = true;
+
+    private void ToggleDrawer() => _drawerOpen = !_drawerOpen;
+}
