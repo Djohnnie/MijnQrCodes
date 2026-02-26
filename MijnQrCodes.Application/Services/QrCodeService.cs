@@ -19,9 +19,9 @@ public class QrCodeService : IQrCodeService
         var moduleSize = (float)size / totalModules;
         var cornerRadius = moduleSize * 0.4f;
 
-        using var surface = SKSurface.Create(new SKImageInfo(size, size));
+        using var surface = SKSurface.Create(new SKImageInfo(size, size, SKColorType.Rgba8888, SKAlphaType.Premul));
         var canvas = surface.Canvas;
-        canvas.Clear(SKColors.White);
+        canvas.Clear(SKColors.Transparent);
 
         using var darkPaint = new SKPaint
         {
@@ -105,7 +105,7 @@ public class QrCodeService : IQrCodeService
         var innerRadius = moduleSize * 0.6f;
 
         using var darkPaint = new SKPaint { Color = new SKColor(33, 33, 33), IsAntialias = true, Style = SKPaintStyle.Fill };
-        using var whitePaint = new SKPaint { Color = SKColors.White, IsAntialias = true, Style = SKPaintStyle.Fill };
+        using var whitePaint = new SKPaint { Color = SKColors.Transparent, IsAntialias = true, Style = SKPaintStyle.Fill, BlendMode = SKBlendMode.Src };
 
         canvas.DrawRoundRect(new SKRoundRect(new SKRect(x, y, x + outerSize, y + outerSize), outerRadius), darkPaint);
 
