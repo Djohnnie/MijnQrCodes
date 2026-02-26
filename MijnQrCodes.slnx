@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="MijnQrCodes.Application/MijnQrCodes.Application.csproj" />
+  <Project Path="MijnQrCodes.Contracts/MijnQrCodes.Contracts.csproj" />
+  <Project Path="MijnQrCodes.Dashboard.Web/MijnQrCodes.Dashboard.Web.csproj" />
+  <Project Path="MijnQrCodes.DataAccess/MijnQrCodes.DataAccess.csproj" />
+</Solution>

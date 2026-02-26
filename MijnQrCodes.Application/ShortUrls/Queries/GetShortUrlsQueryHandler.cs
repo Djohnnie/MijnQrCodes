@@ -1,0 +1,33 @@
+using MediatR;
+using MijnQrCodes.Contracts.ShortUrls;
+using MijnQrCodes.DataAccess.Repositories;
+
+namespace MijnQrCodes.Application.ShortUrls.Queries;
+
+public class GetShortUrlsQueryHandler : IRequestHandler<GetShortUrlsQuery, GetShortUrlsResponse>
+{
+    private readonly IShortUrlRepository _repository;
+
+    public GetShortUrlsQueryHandler(IShortUrlRepository repository)
+    {
+        _repository = repository;
+    }
+
+    public async Task<GetShortUrlsResponse> Handle(GetShortUrlsQuery request, CancellationToken cancellationToken)
+    {
+        var shortUrls = await _repository.GetAll();
+
+        return new GetShortUrlsResponse
+        {
+            ShortUrls = shortUrls.Select(x => new ShortUrlDto
+            {
+                Id = x.Id,
+                Title = x.Title,
+                OriginalUrl = x.OriginalUrl,
+                ShortCode = x.ShortCode,
+                CreatedAt = x.CreatedAt,
+                UpdatedAt = x.UpdatedAt
+            }).ToList()
+        };
+    }
+}
