@@ -35,7 +35,7 @@ public class QrCodeService : IQrCodeService
             for (var col = 0; col < moduleCount; col++)
             {
                 if (!moduleData[row][col]) continue;
-                if (IsFinderPatternArea(row, col, moduleCount)) continue;
+                //if (IsFinderPatternArea(row, col, moduleCount)) continue;
 
                 var x = (col + QuietZoneModules) * moduleSize;
                 var y = (row + QuietZoneModules) * moduleSize;
@@ -50,9 +50,9 @@ public class QrCodeService : IQrCodeService
             }
         }
 
-        DrawFinderPattern(canvas, QuietZoneModules * moduleSize, QuietZoneModules * moduleSize, moduleSize);
-        DrawFinderPattern(canvas, (moduleCount - 7 + QuietZoneModules) * moduleSize, QuietZoneModules * moduleSize, moduleSize);
-        DrawFinderPattern(canvas, QuietZoneModules * moduleSize, (moduleCount - 7 + QuietZoneModules) * moduleSize, moduleSize);
+        //DrawFinderPattern(canvas, QuietZoneModules * moduleSize, QuietZoneModules * moduleSize, moduleSize);
+        //DrawFinderPattern(canvas, (moduleCount - 7 + QuietZoneModules) * moduleSize, QuietZoneModules * moduleSize, moduleSize);
+        //DrawFinderPattern(canvas, QuietZoneModules * moduleSize, (moduleCount - 7 + QuietZoneModules) * moduleSize, moduleSize);
 
         using var image = surface.Snapshot();
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -62,7 +62,7 @@ public class QrCodeService : IQrCodeService
     private static bool IsDataModule(List<BitArray> moduleData, int row, int col, int moduleCount)
     {
         if (row < 0 || row >= moduleCount || col < 0 || col >= moduleCount) return false;
-        if (IsFinderPatternArea(row, col, moduleCount)) return false;
+        //if (IsFinderPatternArea(row, col, moduleCount)) return false;
         return moduleData[row][col];
     }
 
