@@ -1,7 +1,5 @@
 @page "/register"
-@using MediatR
-@using MijnQrCodes.Contracts.Auth
-@inject IMediator Mediator
+@attribute [Microsoft.AspNetCore.Authorization.AllowAnonymous]
 
 <PageTitle>Registreren - MijnQrCodes</PageTitle>
 
@@ -11,10 +9,10 @@
             <span>📝</span> Registreren
         </h3>
 
-        @if (_registered)
+        @if (Registered == "true")
         {
             <div style="background: #e8f5e9; color: #2e7d32; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
-                @if (_autoApproved)
+                @if (AutoApproved == "true")
                 {
                     <text>Account aangemaakt! Je kunt nu <a href="/login">aanmelden</a>.</text>
                 }
@@ -26,30 +24,30 @@
         }
         else
         {
-            @if (!string.IsNullOrEmpty(_error))
+            @if (!string.IsNullOrEmpty(Error))
             {
                 <div style="background: #ffebee; color: #c62828; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
-                    @_error
+                    @Uri.UnescapeDataString(Error)
                 </div>
             }
 
-            <EditForm Model="_model" OnValidSubmit="HandleRegister" FormName="RegisterForm">
+            <form method="post" action="/api/register">
                 <div style="margin-bottom: 1rem;">
                     <label>Gebruikersnaam</label>
-                    <InputText @bind-Value="_model.Username" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;" />
+                    <input name="username" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;" />
                 </div>
                 <div style="margin-bottom: 1rem;">
                     <label>Wachtwoord</label>
-                    <InputText @bind-Value="_model.Password" type="password" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;" />
+                    <input name="password" type="password" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;" />
                 </div>
                 <div style="margin-bottom: 1.5rem;">
                     <label>Wachtwoord bevestigen</label>
-                    <InputText @bind-Value="_model.ConfirmPassword" type="password" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;" />
+                    <input name="confirmPassword" type="password" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;" />
                 </div>
                 <button type="submit" style="width: 100%; padding: 0.75rem; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">
                     Registreren
                 </button>
-            </EditForm>
+            </form>
 
             <p style="text-align: center; margin-top: 1rem;">
                 Al een account? <a href="/login">Aanmelden</a>
@@ -59,54 +57,12 @@
 </div>
 
 @code {
-    [SupplyParameterFromForm]
-    private RegisterFormModel _model { get; set; } = new();
+    [SupplyParameterFromQuery(Name = "error")]
+    public string? Error { get; set; }
 
-    private string? _error;
-    private bool _registered;
-    private bool _autoApproved;
+    [SupplyParameterFromQuery(Name = "registered")]
+    public string? Registered { get; set; }
 
-    private class RegisterFormModel
-    {
-        public string Username { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public string ConfirmPassword { get; set; } = string.Empty;
-    }
-
-    private async Task HandleRegister()
-    {
-        _model ??= new();
-        if (string.IsNullOrWhiteSpace(_model.Username) || string.IsNullOrWhiteSpace(_model.Password))
-        {
-            _error = "Vul alle velden in.";
-            return;
-        }
-
-        if (_model.Password.Length < 6)
-        {
-            _error = "Wachtwoord moet minimaal 6 tekens bevatten.";
-            return;
-        }
-
-        if (_model.Password != _model.ConfirmPassword)
-        {
-            _error = "Wachtwoorden komen niet overeen.";
-            return;
-        }
-
-        var result = await Mediator.Send(new RegisterCommand
-        {
-            Username = _model.Username,
-            Password = _model.Password
-        });
-
-        if (!result.Success)
-        {
-            _error = result.Error;
-            return;
-        }
-
-        _registered = true;
-        _autoApproved = result.AutoApproved;
-    }
+    [SupplyParameterFromQuery(Name = "autoApproved")]
+    public string? AutoApproved { get; set; }
 }
