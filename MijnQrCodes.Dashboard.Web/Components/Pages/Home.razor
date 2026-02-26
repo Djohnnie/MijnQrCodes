@@ -5,6 +5,7 @@
 @inject IMediator Mediator
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject NavigationManager NavigationManager
 
 <PageTitle>MijnQrCodes</PageTitle>
 
@@ -249,7 +250,7 @@
 
         var response = await Mediator.Send(new GetQrCodeQuery
         {
-            Url = item.OriginalUrl,
+            Url = $"{NavigationManager.BaseUri}r/{item.ShortCode}",
             BackgroundColor = item.BackgroundColor,
             ForegroundColor = item.ForegroundColor,
             FinderPatternColor = item.FinderPatternColor
