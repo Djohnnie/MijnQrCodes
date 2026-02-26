@@ -1,5 +1,5 @@
 @page "/users"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using MediatR
 @using MijnQrCodes.Contracts.Auth
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
@@ -8,6 +8,10 @@
 @inject IDialogService DialogService
 
 <PageTitle>Gebruikers - MijnQrCodes</PageTitle>
+
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
     <MudText Typo="Typo.h4" Class="mb-4">Gebruikersbeheer</MudText>

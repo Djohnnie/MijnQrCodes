@@ -1,5 +1,5 @@
 ﻿@page "/"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode(prerender: false))
 @using MediatR
 @using MijnQrCodes.Contracts.ShortUrls
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
@@ -8,6 +8,10 @@
 @inject IDialogService DialogService
 
 <PageTitle>MijnQrCodes</PageTitle>
+
+<MudPopoverProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
     <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
@@ -86,17 +90,17 @@
                     <MudItem xs="4">
                         <MudText Typo="Typo.caption" Class="mb-1">Achtergrond</MudText>
                         <MudColorPicker @bind-Value="_qrBackgroundColor" ColorPickerMode="ColorPickerMode.HEX"
-                                        DisableAlpha DisableToolbar Variant="Variant.Outlined" />
+                                        ShowAlpha="false" Variant="Variant.Outlined" />
                     </MudItem>
                     <MudItem xs="4">
                         <MudText Typo="Typo.caption" Class="mb-1">Voorgrond</MudText>
                         <MudColorPicker @bind-Value="_qrForegroundColor" ColorPickerMode="ColorPickerMode.HEX"
-                                        DisableAlpha DisableToolbar Variant="Variant.Outlined" />
+                                        ShowAlpha="false" Variant="Variant.Outlined" />
                     </MudItem>
                     <MudItem xs="4">
                         <MudText Typo="Typo.caption" Class="mb-1">Finder Pattern</MudText>
                         <MudColorPicker @bind-Value="_qrFinderColor" ColorPickerMode="ColorPickerMode.HEX"
-                                        DisableAlpha DisableToolbar Variant="Variant.Outlined" />
+                                        ShowAlpha="false" Variant="Variant.Outlined" />
                     </MudItem>
                 </MudGrid>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth Class="mt-3"
@@ -261,9 +265,9 @@
         var response = await Mediator.Send(new GetQrCodeQuery
         {
             Url = _selectedItem.OriginalUrl,
-            BackgroundColor = _qrBackgroundColor.Value[..7],
-            ForegroundColor = _qrForegroundColor.Value[..7],
-            FinderPatternColor = _qrFinderColor.Value[..7]
+            BackgroundColor = _qrBackgroundColor.ToString(MudColorOutputFormats.Hex),
+            ForegroundColor = _qrForegroundColor.ToString(MudColorOutputFormats.Hex),
+            FinderPatternColor = _qrFinderColor.ToString(MudColorOutputFormats.Hex)
         });
         _qrImageData = response.ImageData;
         StateHasChanged();
