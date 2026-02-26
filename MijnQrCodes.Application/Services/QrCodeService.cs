@@ -8,10 +8,10 @@ public class QrCodeService : IQrCodeService
 {
     private const int QuietZoneModules = 2;
 
-    public byte[] GenerateQrCode(string content, int size = 400)
+    public byte[] GenerateQrCode(string content, int size = 1024)
     {
         using var qrGenerator = new QRCodeGenerator();
-        var qrCodeData = qrGenerator.CreateQrCode(content, QRCodeGenerator.ECCLevel.M);
+        var qrCodeData = qrGenerator.CreateQrCode(content, QRCodeGenerator.ECCLevel.H);
         var moduleData = qrCodeData.ModuleMatrix;
         var moduleCount = moduleData.Count;
 
