@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @using MediatR
 @using MijnQrCodes.Contracts.ShortUrls
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IMediator Mediator
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService

@@ -11,6 +11,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddMediatR(c => c.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
         services.AddSingleton<IQrCodeService, QrCodeService>();
+        services.AddSingleton<IPasswordService, PasswordService>();
         services.AddDataAccess();
 
         return services;

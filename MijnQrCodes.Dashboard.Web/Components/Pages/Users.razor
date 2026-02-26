@@ -1,0 +1,146 @@
+@page "/users"
+@rendermode InteractiveServer
+@using MediatR
+@using MijnQrCodes.Contracts.Auth
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IMediator Mediator
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Gebruikers - MijnQrCodes</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudText Typo="Typo.h4" Class="mb-4">Gebruikersbeheer</MudText>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate Color="Color.Primary" />
+    }
+    else
+    {
+        <MudTable Items="_users" Hover Elevation="2">
+            <HeaderContent>
+                <MudTh>Gebruikersnaam</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Aangemaakt</MudTh>
+                <MudTh>Acties</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Gebruikersnaam">@context.Username</MudTd>
+                <MudTd DataLabel="Status">
+                    @if (context.IsApproved)
+                    {
+                        <MudChip T="string" Color="Color.Success" Size="Size.Small">Goedgekeurd</MudChip>
+                    }
+                    else
+                    {
+                        <MudChip T="string" Color="Color.Warning" Size="Size.Small">Wacht op goedkeuring</MudChip>
+                    }
+                    @if (context.MustChangePassword)
+                    {
+                        <MudChip T="string" Color="Color.Info" Size="Size.Small">Wachtwoord reset</MudChip>
+                    }
+                </MudTd>
+                <MudTd DataLabel="Aangemaakt">@context.CreatedAt.ToString("dd-MM-yyyy HH:mm")</MudTd>
+                <MudTd DataLabel="Acties">
+                    @if (!context.IsApproved)
+                    {
+                        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small"
+                                   StartIcon="@Icons.Material.Filled.Check"
+                                   OnClick="() => ApproveUser(context)" Class="mr-2">
+                            Goedkeuren
+                        </MudButton>
+                    }
+                    <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small"
+                               StartIcon="@Icons.Material.Filled.LockReset"
+                               OnClick="() => ResetPassword(context)">
+                        Wachtwoord resetten
+                    </MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudContainer>
+
+@if (_showTempPasswordDialog)
+{
+    <MudOverlay Visible="@_showTempPasswordDialog" OnClick="() => _showTempPasswordDialog = false" DarkBackground ZIndex="1300">
+        <MudCard Style="max-width: 450px; margin: auto;" @onclick:stopPropagation="true">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Tijdelijk wachtwoord</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="() => _showTempPasswordDialog = false" />
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Class="mb-2">Het wachtwoord van <strong>@_resetUsername</strong> is gereset.</MudText>
+                <MudText>Tijdelijk wachtwoord:</MudText>
+                <MudTextField Value="@_tempPassword" ReadOnly Variant="Variant.Outlined" Class="mt-2"
+                              Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.ContentCopy" />
+                <MudText Typo="Typo.caption" Color="Color.Warning" Class="mt-2">
+                    De gebruiker moet dit wachtwoord wijzigen bij het volgende aanmelden.
+                </MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudOverlay>
+}
+
+@code {
+    private List<UserDto> _users = [];
+    private bool _loading = true;
+
+    private bool _showTempPasswordDialog;
+    private string _tempPassword = string.Empty;
+    private string _resetUsername = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsers();
+    }
+
+    private async Task LoadUsers()
+    {
+        _loading = true;
+        var response = await Mediator.Send(new GetUsersQuery());
+        _users = response.Users;
+        _loading = false;
+    }
+
+    private async Task ApproveUser(UserDto user)
+    {
+        await Mediator.Send(new ApproveUserCommand { UserId = user.Id });
+        Snackbar.Add($"'{user.Username}' is goedgekeurd!", Severity.Success);
+        await LoadUsers();
+    }
+
+    private async Task ResetPassword(UserDto user)
+    {
+        var parameters = new DialogParameters<MessageBoxDialog>
+        {
+            { x => x.ContentText, $"Weet je zeker dat je het wachtwoord van '{user.Username}' wilt resetten?" },
+            { x => x.YesText, "Resetten" },
+            { x => x.CancelText, "Annuleren" }
+        };
+
+        var dialog = await DialogService.ShowAsync<MessageBoxDialog>("Wachtwoord resetten", parameters);
+        var dialogResult = await dialog.Result;
+
+        if (dialogResult is null || dialogResult.Canceled) return;
+
+        var result = await Mediator.Send(new ResetUserPasswordCommand { UserId = user.Id });
+
+        if (result.Success)
+        {
+            _resetUsername = user.Username;
+            _tempPassword = result.TemporaryPassword;
+            _showTempPasswordDialog = true;
+            await LoadUsers();
+        }
+        else
+        {
+            Snackbar.Add("Er is iets misgegaan.", Severity.Error);
+        }
+    }
+}
