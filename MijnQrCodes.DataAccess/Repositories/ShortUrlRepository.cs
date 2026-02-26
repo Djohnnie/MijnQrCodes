@@ -53,6 +53,9 @@ public class ShortUrlRepository : IShortUrlRepository
 
         existing.Title = shortUrl.Title;
         existing.OriginalUrl = shortUrl.OriginalUrl;
+        existing.BackgroundColor = shortUrl.BackgroundColor;
+        existing.ForegroundColor = shortUrl.ForegroundColor;
+        existing.FinderPatternColor = shortUrl.FinderPatternColor;
         existing.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();

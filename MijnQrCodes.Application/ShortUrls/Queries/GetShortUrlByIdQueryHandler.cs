@@ -24,6 +24,9 @@ public class GetShortUrlByIdQueryHandler : IRequestHandler<GetShortUrlByIdQuery,
             Title = shortUrl.Title,
             OriginalUrl = shortUrl.OriginalUrl,
             ShortCode = shortUrl.ShortCode,
+            BackgroundColor = shortUrl.BackgroundColor,
+            ForegroundColor = shortUrl.ForegroundColor,
+            FinderPatternColor = shortUrl.FinderPatternColor,
             CreatedAt = shortUrl.CreatedAt,
             UpdatedAt = shortUrl.UpdatedAt
         };

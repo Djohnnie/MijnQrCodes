@@ -22,7 +22,10 @@ public class CreateShortUrlCommandHandler : IRequestHandler<CreateShortUrlComman
         {
             Title = request.Title,
             OriginalUrl = request.OriginalUrl,
-            ShortCode = shortCode
+            ShortCode = shortCode,
+            BackgroundColor = request.BackgroundColor,
+            ForegroundColor = request.ForegroundColor,
+            FinderPatternColor = request.FinderPatternColor
         };
 
         var created = await _repository.Create(entity);
@@ -33,6 +36,9 @@ public class CreateShortUrlCommandHandler : IRequestHandler<CreateShortUrlComman
             Title = created.Title,
             OriginalUrl = created.OriginalUrl,
             ShortCode = created.ShortCode,
+            BackgroundColor = created.BackgroundColor,
+            ForegroundColor = created.ForegroundColor,
+            FinderPatternColor = created.FinderPatternColor,
             CreatedAt = created.CreatedAt,
             UpdatedAt = created.UpdatedAt
         };

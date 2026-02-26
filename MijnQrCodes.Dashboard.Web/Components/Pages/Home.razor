@@ -85,29 +85,6 @@
                     <MudProgressCircular Indeterminate Color="Color.Primary" />
                 }
             </MudCardContent>
-            <MudCardContent>
-                <MudGrid Spacing="2" Class="mt-2">
-                    <MudItem xs="4">
-                        <MudText Typo="Typo.caption" Class="mb-1">Achtergrond</MudText>
-                        <MudColorPicker @bind-Value="_qrBackgroundColor" ColorPickerMode="ColorPickerMode.HEX"
-                                        ShowAlpha="false" Variant="Variant.Outlined" />
-                    </MudItem>
-                    <MudItem xs="4">
-                        <MudText Typo="Typo.caption" Class="mb-1">Voorgrond</MudText>
-                        <MudColorPicker @bind-Value="_qrForegroundColor" ColorPickerMode="ColorPickerMode.HEX"
-                                        ShowAlpha="false" Variant="Variant.Outlined" />
-                    </MudItem>
-                    <MudItem xs="4">
-                        <MudText Typo="Typo.caption" Class="mb-1">Finder Pattern</MudText>
-                        <MudColorPicker @bind-Value="_qrFinderColor" ColorPickerMode="ColorPickerMode.HEX"
-                                        ShowAlpha="false" Variant="Variant.Outlined" />
-                    </MudItem>
-                </MudGrid>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth Class="mt-3"
-                           OnClick="RefreshQrCode" StartIcon="@Icons.Material.Filled.Refresh">
-                    Toepassen
-                </MudButton>
-            </MudCardContent>
         </MudCard>
     </MudOverlay>
 }
@@ -129,7 +106,25 @@
                               Class="mb-3" Variant="Variant.Outlined" />
                 <MudTextField @bind-Value="_formUrl" Label="URL" Required RequiredError="URL is verplicht"
                               Variant="Variant.Outlined" InputType="InputType.Url"
-                              Placeholder="https://voorbeeld.be" />
+                              Placeholder="https://voorbeeld.be" Class="mb-3" />
+                <MudText Typo="Typo.subtitle2" Class="mb-2">QR Code kleuren</MudText>
+                <MudGrid Spacing="2">
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.caption" Class="mb-1">Achtergrond</MudText>
+                        <MudColorPicker @bind-Value="_formBackgroundColor" ColorPickerMode="ColorPickerMode.HEX"
+                                        ShowAlpha="false" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.caption" Class="mb-1">Voorgrond</MudText>
+                        <MudColorPicker @bind-Value="_formForegroundColor" ColorPickerMode="ColorPickerMode.HEX"
+                                        ShowAlpha="false" Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.caption" Class="mb-1">Finder Pattern</MudText>
+                        <MudColorPicker @bind-Value="_formFinderColor" ColorPickerMode="ColorPickerMode.HEX"
+                                        ShowAlpha="false" Variant="Variant.Outlined" />
+                    </MudItem>
+                </MudGrid>
             </MudCardContent>
             <MudCardActions Class="d-flex justify-end pa-4">
                 <MudButton OnClick="CloseFormDialog" Class="mr-2">Annuleren</MudButton>
@@ -149,15 +144,15 @@
     private bool _showQrDialog;
     private ShortUrlDto? _selectedItem;
     private byte[]? _qrImageData;
-    private MudColor _qrBackgroundColor = new("#FFFFFF");
-    private MudColor _qrForegroundColor = new("#212121");
-    private MudColor _qrFinderColor = new("#212121");
 
     private bool _showFormDialog;
     private bool _isEditing;
     private Guid _editingId;
     private string _formTitle = string.Empty;
     private string _formUrl = string.Empty;
+    private MudColor _formBackgroundColor = new("#FFFFFF");
+    private MudColor _formForegroundColor = new("#212121");
+    private MudColor _formFinderColor = new("#212121");
 
     protected override async Task OnInitializedAsync()
     {
@@ -177,6 +172,9 @@
         _isEditing = false;
         _formTitle = string.Empty;
         _formUrl = string.Empty;
+        _formBackgroundColor = new("#FFFFFF");
+        _formForegroundColor = new("#212121");
+        _formFinderColor = new("#212121");
         _showFormDialog = true;
     }
 
@@ -186,6 +184,9 @@
         _editingId = item.Id;
         _formTitle = item.Title;
         _formUrl = item.OriginalUrl;
+        _formBackgroundColor = new(item.BackgroundColor);
+        _formForegroundColor = new(item.ForegroundColor);
+        _formFinderColor = new(item.FinderPatternColor);
         _showFormDialog = true;
     }
 
@@ -201,7 +202,10 @@
             {
                 Id = _editingId,
                 Title = _formTitle,
-                OriginalUrl = _formUrl
+                OriginalUrl = _formUrl,
+                BackgroundColor = _formBackgroundColor.ToString(MudColorOutputFormats.Hex),
+                ForegroundColor = _formForegroundColor.ToString(MudColorOutputFormats.Hex),
+                FinderPatternColor = _formFinderColor.ToString(MudColorOutputFormats.Hex)
             });
             Snackbar.Add("URL bijgewerkt!", Severity.Success);
         }
@@ -210,7 +214,10 @@
             await Mediator.Send(new CreateShortUrlCommand
             {
                 Title = _formTitle,
-                OriginalUrl = _formUrl
+                OriginalUrl = _formUrl,
+                BackgroundColor = _formBackgroundColor.ToString(MudColorOutputFormats.Hex),
+                ForegroundColor = _formForegroundColor.ToString(MudColorOutputFormats.Hex),
+                FinderPatternColor = _formFinderColor.ToString(MudColorOutputFormats.Hex)
             });
             Snackbar.Add("URL aangemaakt!", Severity.Success);
         }
@@ -243,31 +250,14 @@
     {
         _selectedItem = item;
         _qrImageData = null;
-        _qrBackgroundColor = new("#FFFFFF");
-        _qrForegroundColor = new("#212121");
-        _qrFinderColor = new("#212121");
         _showQrDialog = true;
-
-        await GenerateQrCode();
-    }
-
-    private async Task RefreshQrCode()
-    {
-        _qrImageData = null;
-        StateHasChanged();
-        await GenerateQrCode();
-    }
-
-    private async Task GenerateQrCode()
-    {
-        if (_selectedItem is null) return;
 
         var response = await Mediator.Send(new GetQrCodeQuery
         {
-            Url = _selectedItem.OriginalUrl,
-            BackgroundColor = _qrBackgroundColor.ToString(MudColorOutputFormats.Hex),
-            ForegroundColor = _qrForegroundColor.ToString(MudColorOutputFormats.Hex),
-            FinderPatternColor = _qrFinderColor.ToString(MudColorOutputFormats.Hex)
+            Url = item.OriginalUrl,
+            BackgroundColor = item.BackgroundColor,
+            ForegroundColor = item.ForegroundColor,
+            FinderPatternColor = item.FinderPatternColor
         });
         _qrImageData = response.ImageData;
         StateHasChanged();

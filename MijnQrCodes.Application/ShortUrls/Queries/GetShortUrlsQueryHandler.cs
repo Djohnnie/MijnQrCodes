@@ -25,6 +25,9 @@ public class GetShortUrlsQueryHandler : IRequestHandler<GetShortUrlsQuery, GetSh
                 Title = x.Title,
                 OriginalUrl = x.OriginalUrl,
                 ShortCode = x.ShortCode,
+                BackgroundColor = x.BackgroundColor,
+                ForegroundColor = x.ForegroundColor,
+                FinderPatternColor = x.FinderPatternColor,
                 CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt
             }).ToList()

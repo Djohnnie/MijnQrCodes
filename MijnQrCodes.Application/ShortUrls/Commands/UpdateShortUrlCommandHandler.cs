@@ -20,7 +20,10 @@ public class UpdateShortUrlCommandHandler : IRequestHandler<UpdateShortUrlComman
         {
             Id = request.Id,
             Title = request.Title,
-            OriginalUrl = request.OriginalUrl
+            OriginalUrl = request.OriginalUrl,
+            BackgroundColor = request.BackgroundColor,
+            ForegroundColor = request.ForegroundColor,
+            FinderPatternColor = request.FinderPatternColor
         };
 
         var updated = await _repository.Update(entity);
@@ -32,6 +35,9 @@ public class UpdateShortUrlCommandHandler : IRequestHandler<UpdateShortUrlComman
             Title = updated.Title,
             OriginalUrl = updated.OriginalUrl,
             ShortCode = updated.ShortCode,
+            BackgroundColor = updated.BackgroundColor,
+            ForegroundColor = updated.ForegroundColor,
+            FinderPatternColor = updated.FinderPatternColor,
             CreatedAt = updated.CreatedAt,
             UpdatedAt = updated.UpdatedAt
         };
