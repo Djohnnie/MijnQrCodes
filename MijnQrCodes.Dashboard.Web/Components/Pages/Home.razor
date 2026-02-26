@@ -61,7 +61,7 @@
 @if (_showQrDialog)
 {
     <MudOverlay Visible="@_showQrDialog" OnClick="CloseQrDialog" DarkBackground ZIndex="1300">
-        <MudCard Style="max-width: 460px; margin: auto;" @onclick:stopPropagation="true">
+        <MudCard Style="max-width: 520px; margin: auto;" @onclick:stopPropagation="true">
             <MudCardHeader>
                 <CardHeaderContent>
                     <MudText Typo="Typo.h6">QR Code - @_selectedItem?.Title</MudText>
@@ -70,7 +70,7 @@
                     <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="CloseQrDialog" />
                 </CardHeaderActions>
             </MudCardHeader>
-            <MudCardContent Class="d-flex justify-center">
+            <MudCardContent Class="d-flex justify-center" Style="background: repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 50% / 20px 20px;">
                 @if (_qrImageData is not null)
                 {
                     <img src="data:image/png;base64,@Convert.ToBase64String(_qrImageData)" alt="QR Code"
@@ -82,9 +82,27 @@
                 }
             </MudCardContent>
             <MudCardContent>
-                <MudText Typo="Typo.caption" Align="Align.Center" Style="word-break: break-all;">
-                    @_selectedItem?.OriginalUrl
-                </MudText>
+                <MudGrid Spacing="2" Class="mt-2">
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.caption" Class="mb-1">Achtergrond</MudText>
+                        <MudColorPicker @bind-Value="_qrBackgroundColor" ColorPickerMode="ColorPickerMode.HEX"
+                                        DisableAlpha DisableToolbar Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.caption" Class="mb-1">Voorgrond</MudText>
+                        <MudColorPicker @bind-Value="_qrForegroundColor" ColorPickerMode="ColorPickerMode.HEX"
+                                        DisableAlpha DisableToolbar Variant="Variant.Outlined" />
+                    </MudItem>
+                    <MudItem xs="4">
+                        <MudText Typo="Typo.caption" Class="mb-1">Finder Pattern</MudText>
+                        <MudColorPicker @bind-Value="_qrFinderColor" ColorPickerMode="ColorPickerMode.HEX"
+                                        DisableAlpha DisableToolbar Variant="Variant.Outlined" />
+                    </MudItem>
+                </MudGrid>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth Class="mt-3"
+                           OnClick="RefreshQrCode" StartIcon="@Icons.Material.Filled.Refresh">
+                    Toepassen
+                </MudButton>
             </MudCardContent>
         </MudCard>
     </MudOverlay>
@@ -127,6 +145,9 @@
     private bool _showQrDialog;
     private ShortUrlDto? _selectedItem;
     private byte[]? _qrImageData;
+    private MudColor _qrBackgroundColor = new("#FFFFFF");
+    private MudColor _qrForegroundColor = new("#212121");
+    private MudColor _qrFinderColor = new("#212121");
 
     private bool _showFormDialog;
     private bool _isEditing;
@@ -218,9 +239,32 @@
     {
         _selectedItem = item;
         _qrImageData = null;
+        _qrBackgroundColor = new("#FFFFFF");
+        _qrForegroundColor = new("#212121");
+        _qrFinderColor = new("#212121");
         _showQrDialog = true;
 
-        var response = await Mediator.Send(new GetQrCodeQuery { Url = item.OriginalUrl });
+        await GenerateQrCode();
+    }
+
+    private async Task RefreshQrCode()
+    {
+        _qrImageData = null;
+        StateHasChanged();
+        await GenerateQrCode();
+    }
+
+    private async Task GenerateQrCode()
+    {
+        if (_selectedItem is null) return;
+
+        var response = await Mediator.Send(new GetQrCodeQuery
+        {
+            Url = _selectedItem.OriginalUrl,
+            BackgroundColor = _qrBackgroundColor.Value[..7],
+            ForegroundColor = _qrForegroundColor.Value[..7],
+            FinderPatternColor = _qrFinderColor.Value[..7]
+        });
         _qrImageData = response.ImageData;
         StateHasChanged();
     }

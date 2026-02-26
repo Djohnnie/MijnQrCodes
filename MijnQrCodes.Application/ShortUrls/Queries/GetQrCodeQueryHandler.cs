@@ -15,7 +15,10 @@ public class GetQrCodeQueryHandler : IRequestHandler<GetQrCodeQuery, GetQrCodeRe
 
     public Task<GetQrCodeResponse> Handle(GetQrCodeQuery request, CancellationToken cancellationToken)
     {
-        var imageData = _qrCodeService.GenerateQrCode(request.Url);
+        var imageData = _qrCodeService.GenerateQrCode(request.Url,
+            backgroundColor: request.BackgroundColor,
+            foregroundColor: request.ForegroundColor,
+            finderPatternColor: request.FinderPatternColor);
 
         return Task.FromResult(new GetQrCodeResponse
         {
