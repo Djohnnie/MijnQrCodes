@@ -35,6 +35,8 @@ public class QrCodeService : IQrCodeService
             {
                 if (!moduleData[row][col]) continue;
 
+                if (IsFinderPatternArea(row, col, moduleCount)) continue;
+
                 var x = (col + QuietZoneModules) * moduleSize;
                 var y = (row + QuietZoneModules) * moduleSize;
                 canvas.DrawRect(x, y, moduleSize, moduleSize, darkPaint);
@@ -49,6 +51,18 @@ public class QrCodeService : IQrCodeService
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);
 
         return data.ToArray();
+    }
+
+    private static bool IsFinderPatternArea(int row, int col, int moduleCount)
+    {
+        // Top-left 7x7
+        if (row < 7 && col < 7) return true;
+        // Top-right 7x7
+        if (row < 7 && col >= moduleCount - 7) return true;
+        // Bottom-left 7x7
+        if (row >= moduleCount - 7 && col < 7) return true;
+
+        return false;
     }
 
     private static void DrawRoundedFinderPattern(SKCanvas canvas, float x, float y, float moduleSize)
