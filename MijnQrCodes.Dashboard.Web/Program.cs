@@ -162,7 +162,7 @@ app.MapPost("/api/change-password", async (HttpContext context, IMediator mediat
     return Results.Redirect("/");
 }).DisableAntiforgery();
 
-app.MapGet("/r/{shortCode}", async (string shortCode, IShortUrlRepository repository) =>
+app.MapGet("/r/{shortCode}", async (string shortCode, IShortUrlRepository repository, IShortUrlVisitRepository visitRepository) =>
 {
     var shortUrl = await repository.GetByShortCode(shortCode);
     if (shortUrl is null)
@@ -170,6 +170,7 @@ app.MapGet("/r/{shortCode}", async (string shortCode, IShortUrlRepository reposi
         return Results.NotFound();
     }
 
+    await visitRepository.RecordVisit(shortUrl.Id);
     return Results.Redirect(shortUrl.OriginalUrl);
 }).AllowAnonymous();
 

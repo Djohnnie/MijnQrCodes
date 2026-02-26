@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using MediatR
 @using MijnQrCodes.Contracts.ShortUrls
+@using ApexCharts
+@using Color = MudBlazor.Color
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IMediator Mediator
 @inject ISnackbar Snackbar
@@ -46,6 +48,8 @@
                         <MudCardActions>
                             <MudIconButton Icon="@Icons.Material.Filled.QrCode2" Color="Color.Primary"
                                            OnClick="() => ShowQrCode(item)" aria-label="QR Code" />
+                            <MudIconButton Icon="@Icons.Material.Filled.BarChart" Color="Color.Info"
+                                           OnClick="() => ShowStats(item)" aria-label="Statistieken" />
                             <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning"
                                            OnClick="() => OpenEditDialog(item)" aria-label="Bewerken" />
                             <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
@@ -133,6 +137,68 @@
     </MudOverlay>
 }
 
+@if (_showStatsDialog)
+{
+    <MudOverlay Visible="@_showStatsDialog" OnClick="CloseStatsDialog" DarkBackground ZIndex="1300">
+        <MudCard Style="max-width: 800px; width: 90vw; margin: auto;" @onclick:stopPropagation="true">
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Statistieken - @_selectedItem?.Title</MudText>
+                </CardHeaderContent>
+                <CardHeaderActions>
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="CloseStatsDialog" />
+                </CardHeaderActions>
+            </MudCardHeader>
+            <MudCardContent>
+                @if (_statsLoading)
+                {
+                    <MudProgressLinear Indeterminate Color="Color.Primary" />
+                }
+                else if (_visitStats is not null)
+                {
+                    <MudAlert Severity="Severity.Info" Class="mb-4" Variant="Variant.Outlined">
+                        <MudText Typo="Typo.h5" Inline>@_visitStats.TotalVisits</MudText>
+                        <MudText Typo="Typo.body1" Inline Class="ml-2">totale bezoeken</MudText>
+                    </MudAlert>
+
+                    <MudTabs Elevation="0" Rounded ApplyEffectsToContainer Class="mb-2">
+                        <MudTabPanel Text="Per dag (30 dagen)">
+                            <ApexChart TItem="VisitDataPoint" Height="300">
+                                <ApexPointSeries TItem="VisitDataPoint"
+                                                 Items="_visitStats.DailyVisits"
+                                                 SeriesType="SeriesType.Bar"
+                                                 Name="Bezoeken"
+                                                 XValue="@(p => p.Date.ToString("dd/MM"))"
+                                                 YValue="@(p => p.Count)" />
+                            </ApexChart>
+                        </MudTabPanel>
+                        <MudTabPanel Text="Per week (12 weken)">
+                            <ApexChart TItem="VisitDataPoint" Height="300">
+                                <ApexPointSeries TItem="VisitDataPoint"
+                                                 Items="_visitStats.WeeklyVisits"
+                                                 SeriesType="SeriesType.Bar"
+                                                 Name="Bezoeken"
+                                                 XValue="@(p => $"Week {p.Date:dd/MM}")"
+                                                 YValue="@(p => p.Count)" />
+                            </ApexChart>
+                        </MudTabPanel>
+                        <MudTabPanel Text="Per maand (12 maanden)">
+                            <ApexChart TItem="VisitDataPoint" Height="300">
+                                <ApexPointSeries TItem="VisitDataPoint"
+                                                 Items="_visitStats.MonthlyVisits"
+                                                 SeriesType="SeriesType.Bar"
+                                                 Name="Bezoeken"
+                                                 XValue="@(p => p.Date.ToString("MMM yy"))"
+                                                 YValue="@(p => p.Count)" />
+                            </ApexChart>
+                        </MudTabPanel>
+                    </MudTabs>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudOverlay>
+}
+
 @code {
     private List<ShortUrlDto> _shortUrls = [];
     private bool _loading = true;
@@ -140,6 +206,10 @@
     private bool _showQrDialog;
     private ShortUrlDto? _selectedItem;
     private byte[]? _qrImageData;
+
+    private bool _showStatsDialog;
+    private bool _statsLoading;
+    private GetVisitStatsResponse? _visitStats;
 
     private bool _showFormDialog;
     private bool _isEditing;
@@ -263,5 +333,23 @@
     {
         _showQrDialog = false;
         _qrImageData = null;
+    }
+
+    private async Task ShowStats(ShortUrlDto item)
+    {
+        _selectedItem = item;
+        _visitStats = null;
+        _statsLoading = true;
+        _showStatsDialog = true;
+
+        _visitStats = await Mediator.Send(new GetVisitStatsQuery { ShortUrlId = item.Id });
+        _statsLoading = false;
+        StateHasChanged();
+    }
+
+    private void CloseStatsDialog()
+    {
+        _showStatsDialog = false;
+        _visitStats = null;
     }
 }

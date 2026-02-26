@@ -9,6 +9,7 @@ public static class ServiceCollectionExtensions
     {
         services.AddDbContext<MijnQrCodesDbContext>();
         services.AddScoped<IShortUrlRepository, ShortUrlRepository>();
+        services.AddScoped<IShortUrlVisitRepository, ShortUrlVisitRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
 
         return services;

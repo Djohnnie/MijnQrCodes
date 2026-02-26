@@ -9,6 +9,7 @@ public class MijnQrCodesDbContext : DbContext
     private readonly IConfiguration _configuration;
 
     public DbSet<ShortUrl> ShortUrls { get; set; }
+    public DbSet<ShortUrlVisit> ShortUrlVisits { get; set; }
     public DbSet<User> Users { get; set; }
 
     public MijnQrCodesDbContext(IConfiguration configuration)
@@ -36,6 +37,19 @@ public class MijnQrCodesDbContext : DbContext
             entity.Property(e => e.BackgroundColor).HasMaxLength(10).HasDefaultValue("#FFFFFF");
             entity.Property(e => e.ForegroundColor).HasMaxLength(10).HasDefaultValue("#212121");
             entity.Property(e => e.FinderPatternColor).HasMaxLength(10).HasDefaultValue("#212121");
+        });
+
+        modelBuilder.Entity<ShortUrlVisit>(entity =>
+        {
+            entity.ToTable("SHORT_URL_VISITS");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SysId).ValueGeneratedOnAdd();
+            entity.HasIndex(e => e.SysId).IsClustered(false).IsUnique();
+            entity.HasIndex(e => e.ShortUrlId);
+            entity.HasOne(e => e.ShortUrl)
+                .WithMany()
+                .HasForeignKey(e => e.ShortUrlId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<User>(entity =>
