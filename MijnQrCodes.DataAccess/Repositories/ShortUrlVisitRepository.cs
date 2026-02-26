@@ -39,4 +39,11 @@ public class ShortUrlVisitRepository : IShortUrlVisitRepository
             .AsNoTracking()
             .CountAsync(v => v.ShortUrlId == shortUrlId);
     }
+
+    public async Task<List<ShortUrlVisit>> GetAllVisits()
+    {
+        return await _dbContext.ShortUrlVisits
+            .AsNoTracking()
+            .ToListAsync();
+    }
 }

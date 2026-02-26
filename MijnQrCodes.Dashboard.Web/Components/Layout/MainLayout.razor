@@ -19,6 +19,8 @@
             <MudDrawer @bind-Open="_drawerOpen" Elevation="1" ClipMode="DrawerClipMode.Always">
                 <MudNavMenu>
                     <MudNavLink Href="/" Match="NavLinkMatch.All"
+                                Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+                    <MudNavLink Href="/urls" Match="NavLinkMatch.Prefix"
                                 Icon="@Icons.Material.Filled.Link">URL's</MudNavLink>
                     <MudNavLink Href="/users" Match="NavLinkMatch.Prefix"
                                 Icon="@Icons.Material.Filled.People">Gebruikers</MudNavLink>
