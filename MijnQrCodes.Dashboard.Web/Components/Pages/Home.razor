@@ -3,199 +3,261 @@
 @using MijnQrCodes.Contracts.ShortUrls
 @using ApexCharts
 @using Color = MudBlazor.Color
+@using Size = MudBlazor.Size
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IMediator Mediator
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 
-<PageTitle>MijnQrCodes</PageTitle>
+<PageTitle>URL's - MijnQrCodes</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
-    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
-        <MudText Typo="Typo.h4">Korte URL's</MudText>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
-                   OnClick="OpenCreateDialog">Nieuwe URL</MudButton>
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
+        <MudText Typo="Typo.h4">URL's</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add" Class="rounded-lg"
+                   OnClick="OpenCreateDialog" Style="text-transform: none; font-weight: 600;">
+            Nieuwe URL
+        </MudButton>
     </MudStack>
 
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate Color="Color.Primary" />
+        <MudGrid Spacing="3">
+            @for (var i = 0; i < 6; i++)
+            {
+                <MudItem xs="12" sm="6" md="4">
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="200px" Class="rounded-lg" />
+                </MudItem>
+            }
+        </MudGrid>
     }
     else if (_shortUrls.Count == 0)
     {
-        <MudAlert Severity="Severity.Info" Class="mb-4">Nog geen korte URL's aangemaakt.</MudAlert>
+        <MudPaper Elevation="0" Class="pa-12 rounded-lg d-flex flex-column align-center"
+                  Style="border: 2px dashed var(--mud-palette-lines-default);">
+            <MudIcon Icon="@Icons.Material.Outlined.LinkOff" Size="Size.Large" Color="Color.Tertiary"
+                     Style="font-size: 4rem;" />
+            <MudText Typo="Typo.h6" Color="Color.Tertiary" Class="mt-4">Nog geen URL's</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="mt-1 mb-4">
+                Maak je eerste verkorte URL aan om te beginnen
+            </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="OpenCreateDialog" Style="text-transform: none; font-weight: 600;">
+                Nieuwe URL
+            </MudButton>
+        </MudPaper>
     }
     else
     {
-        <MudGrid Spacing="4">
+        <MudGrid Spacing="3">
             @foreach (var item in _shortUrls)
             {
                 <MudItem xs="12" sm="6" md="4">
-                    <MudCard Elevation="2">
-                        <MudCardContent>
-                            <MudText Typo="Typo.h6" Class="mb-1">@item.Title</MudText>
-                            <MudText Typo="Typo.body2" Color="Color.Primary" Class="mb-1" Style="word-break: break-all;">
-                                /@item.ShortCode
-                            </MudText>
-                            <MudText Typo="Typo.caption" Color="Color.Tertiary" Style="word-break: break-all;">
+                    <MudPaper Elevation="0" Class="rounded-lg url-card"
+                              Style="border: 1px solid var(--mud-palette-lines-default); overflow: hidden; transition: all 0.2s ease;">
+                        <div class="pa-4">
+                            <MudStack Row AlignItems="AlignItems.Start" Justify="Justify.SpaceBetween">
+                                <MudStack Spacing="1" Style="min-width: 0; flex: 1;">
+                                    <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">
+                                        @item.Title
+                                    </MudText>
+                                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                        <MudIcon Icon="@Icons.Material.Outlined.Link" Size="Size.Small" Color="Color.Primary" />
+                                        <MudText Typo="Typo.body2" Color="Color.Primary" Style="font-weight: 500;">
+                                            /r/@item.ShortCode
+                                        </MudText>
+                                    </MudStack>
+                                </MudStack>
+                                <div style="width: 48px; height: 48px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: @item.BackgroundColor; display: flex; align-items: center; justify-content: center; cursor: pointer;"
+                                     @onclick="() => ShowQrCode(item)">
+                                    <MudIcon Icon="@Icons.Material.Filled.QrCode2" Style="@($"color: {item.ForegroundColor}; font-size: 2rem;")" />
+                                </div>
+                            </MudStack>
+                            <MudText Typo="Typo.caption" Color="Color.Tertiary" Class="mt-2"
+                                     Style="word-break: break-all; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                                 @item.OriginalUrl
                             </MudText>
-                            <MudText Typo="Typo.caption" Class="mt-2" Color="Color.Default">
-                                Aangemaakt: @item.CreatedAt.ToString("dd-MM-yyyy HH:mm")
-                            </MudText>
-                        </MudCardContent>
-                        <MudCardActions>
-                            <MudIconButton Icon="@Icons.Material.Filled.QrCode2" Color="Color.Primary"
-                                           OnClick="() => ShowQrCode(item)" aria-label="QR Code" />
-                            <MudIconButton Icon="@Icons.Material.Filled.BarChart" Color="Color.Info"
-                                           OnClick="() => ShowStats(item)" aria-label="Statistieken" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Warning"
-                                           OnClick="() => OpenEditDialog(item)" aria-label="Bewerken" />
-                            <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error"
-                                           OnClick="() => ConfirmDelete(item)" aria-label="Verwijderen" />
-                        </MudCardActions>
-                    </MudCard>
+                            <MudDivider Class="my-3" />
+                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                                <MudText Typo="Typo.caption" Color="Color.Tertiary">
+                                    @item.CreatedAt.ToString("dd MMM yyyy")
+                                </MudText>
+                                <MudStack Row Spacing="0">
+                                    <MudTooltip Text="QR Code">
+                                        <MudIconButton Icon="@Icons.Material.Outlined.QrCode2" Size="Size.Small"
+                                                       Color="Color.Primary" OnClick="() => ShowQrCode(item)" />
+                                    </MudTooltip>
+                                    <MudTooltip Text="Statistieken">
+                                        <MudIconButton Icon="@Icons.Material.Outlined.BarChart" Size="Size.Small"
+                                                       Color="Color.Info" OnClick="() => ShowStats(item)" />
+                                    </MudTooltip>
+                                    <MudTooltip Text="Bewerken">
+                                        <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="Size.Small"
+                                                       Color="Color.Warning" OnClick="() => OpenEditDialog(item)" />
+                                    </MudTooltip>
+                                    <MudTooltip Text="Verwijderen">
+                                        <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Size="Size.Small"
+                                                       Color="Color.Error" OnClick="() => ConfirmDelete(item)" />
+                                    </MudTooltip>
+                                </MudStack>
+                            </MudStack>
+                        </div>
+                    </MudPaper>
                 </MudItem>
             }
         </MudGrid>
     }
 </MudContainer>
 
+@* QR Code Dialog *@
 @if (_showQrDialog)
 {
     <MudOverlay Visible="@_showQrDialog" OnClick="CloseQrDialog" DarkBackground ZIndex="1300">
-        <MudCard Style="max-width: 520px; margin: auto;" @onclick:stopPropagation="true">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6">QR Code - @_selectedItem?.Title</MudText>
-                </CardHeaderContent>
-                <CardHeaderActions>
-                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="CloseQrDialog" />
-                </CardHeaderActions>
-            </MudCardHeader>
-            <MudCardContent Class="d-flex justify-center" Style="background: repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 50% / 20px 20px;">
-                @if (_qrImageData is not null)
-                {
-                    <img src="data:image/png;base64,@Convert.ToBase64String(_qrImageData)" alt="QR Code"
-                         style="width: 400px; height: 400px;" />
-                }
-                else
-                {
-                    <MudProgressCircular Indeterminate Color="Color.Primary" />
-                }
-            </MudCardContent>
-        </MudCard>
+        <MudPaper Class="rounded-lg" Style="max-width: 480px; margin: auto; overflow: hidden;"
+                  @onclick:stopPropagation="true" Elevation="8">
+            <div class="pa-5">
+                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+                    <MudText Typo="Typo.h6">@_selectedItem?.Title</MudText>
+                    <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Small"
+                                   OnClick="CloseQrDialog" />
+                </MudStack>
+                <div style="background: repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 50% / 16px 16px; border-radius: 12px; padding: 1rem; display: flex; justify-content: center;">
+                    @if (_qrImageData is not null)
+                    {
+                        <img src="data:image/png;base64,@Convert.ToBase64String(_qrImageData)" alt="QR Code"
+                             style="width: 360px; height: 360px; border-radius: 8px;" />
+                    }
+                    else
+                    {
+                        <div style="width: 360px; height: 360px; display: flex; align-items: center; justify-content: center;">
+                            <MudProgressCircular Indeterminate Color="Color.Primary" />
+                        </div>
+                    }
+                </div>
+            </div>
+        </MudPaper>
     </MudOverlay>
 }
 
+@* Form Dialog *@
 @if (_showFormDialog)
 {
     <MudOverlay Visible="@_showFormDialog" OnClick="CloseFormDialog" DarkBackground ZIndex="1300">
-        <MudCard Style="max-width: 500px; margin: auto; min-width: 350px;" @onclick:stopPropagation="true">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6">@(_isEditing ? "URL Bewerken" : "Nieuwe URL")</MudText>
-                </CardHeaderContent>
-                <CardHeaderActions>
-                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="CloseFormDialog" />
-                </CardHeaderActions>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudTextField @bind-Value="_formTitle" Label="Titel" Required RequiredError="Titel is verplicht"
-                              Class="mb-3" Variant="Variant.Outlined" />
-                <MudTextField @bind-Value="_formUrl" Label="URL" Required RequiredError="URL is verplicht"
-                              Variant="Variant.Outlined" InputType="InputType.Url"
-                              Placeholder="https://voorbeeld.be" Class="mb-3" />
-                <MudText Typo="Typo.subtitle2" Class="mb-2">QR Code kleuren</MudText>
-                <MudGrid Spacing="2">
-                    <MudItem xs="4">
-                        <MudText Typo="Typo.caption" Class="mb-1">Achtergrond</MudText>
-                        <MudColorPicker @bind-Value="_formBackgroundColor" ColorPickerMode="ColorPickerMode.HEX"
-                                        ShowAlpha="false" Variant="Variant.Outlined" />
-                    </MudItem>
-                    <MudItem xs="4">
-                        <MudText Typo="Typo.caption" Class="mb-1">Voorgrond</MudText>
-                        <MudColorPicker @bind-Value="_formForegroundColor" ColorPickerMode="ColorPickerMode.HEX"
-                                        ShowAlpha="false" Variant="Variant.Outlined" />
-                    </MudItem>
-                    <MudItem xs="4">
-                        <MudText Typo="Typo.caption" Class="mb-1">Finder Pattern</MudText>
-                        <MudColorPicker @bind-Value="_formFinderColor" ColorPickerMode="ColorPickerMode.HEX"
-                                        ShowAlpha="false" Variant="Variant.Outlined" />
-                    </MudItem>
-                </MudGrid>
-            </MudCardContent>
-            <MudCardActions Class="d-flex justify-end pa-4">
-                <MudButton OnClick="CloseFormDialog" Class="mr-2">Annuleren</MudButton>
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveForm"
-                           Disabled="@(string.IsNullOrWhiteSpace(_formTitle) || string.IsNullOrWhiteSpace(_formUrl))">
-                    @(_isEditing ? "Opslaan" : "Aanmaken")
-                </MudButton>
-            </MudCardActions>
-        </MudCard>
+        <MudPaper Class="rounded-lg" Style="max-width: 480px; margin: auto; min-width: 360px; overflow: hidden;"
+                  @onclick:stopPropagation="true" Elevation="8">
+            <div class="pa-5">
+                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+                    <MudText Typo="Typo.h6">@(_isEditing ? "URL bewerken" : "Nieuwe URL")</MudText>
+                    <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Small"
+                                   OnClick="CloseFormDialog" />
+                </MudStack>
+                <MudStack Spacing="3">
+                    <MudTextField @bind-Value="_formTitle" Label="Titel" Required
+                                  Variant="Variant.Outlined" />
+                    <MudTextField @bind-Value="_formUrl" Label="Doel URL" Required
+                                  Variant="Variant.Outlined" InputType="InputType.Url"
+                                  Placeholder="https://voorbeeld.be" />
+                    <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">QR Code kleuren</MudText>
+                    <MudGrid Spacing="2">
+                        <MudItem xs="4">
+                            <MudText Typo="Typo.caption" Color="Color.Tertiary" Class="mb-1">Achtergrond</MudText>
+                            <MudColorPicker @bind-Value="_formBackgroundColor" ColorPickerMode="ColorPickerMode.HEX"
+                                            ShowAlpha="false" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="4">
+                            <MudText Typo="Typo.caption" Color="Color.Tertiary" Class="mb-1">Voorgrond</MudText>
+                            <MudColorPicker @bind-Value="_formForegroundColor" ColorPickerMode="ColorPickerMode.HEX"
+                                            ShowAlpha="false" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="4">
+                            <MudText Typo="Typo.caption" Color="Color.Tertiary" Class="mb-1">Finder</MudText>
+                            <MudColorPicker @bind-Value="_formFinderColor" ColorPickerMode="ColorPickerMode.HEX"
+                                            ShowAlpha="false" Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                </MudStack>
+                <MudStack Row Justify="Justify.FlexEnd" Class="mt-5" Spacing="2">
+                    <MudButton OnClick="CloseFormDialog" Style="text-transform: none;">Annuleren</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveForm"
+                               Style="text-transform: none; font-weight: 600;"
+                               Disabled="@(string.IsNullOrWhiteSpace(_formTitle) || string.IsNullOrWhiteSpace(_formUrl))">
+                        @(_isEditing ? "Opslaan" : "Aanmaken")
+                    </MudButton>
+                </MudStack>
+            </div>
+        </MudPaper>
     </MudOverlay>
 }
 
+@* Stats Dialog *@
 @if (_showStatsDialog)
 {
     <MudOverlay Visible="@_showStatsDialog" OnClick="CloseStatsDialog" DarkBackground ZIndex="1300">
-        <MudCard Style="max-width: 800px; width: 90vw; margin: auto;" @onclick:stopPropagation="true">
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Statistieken - @_selectedItem?.Title</MudText>
-                </CardHeaderContent>
-                <CardHeaderActions>
-                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="CloseStatsDialog" />
-                </CardHeaderActions>
-            </MudCardHeader>
-            <MudCardContent>
+        <MudPaper Class="rounded-lg" Style="max-width: 800px; width: 90vw; margin: auto; overflow: hidden;"
+                  @onclick:stopPropagation="true" Elevation="8">
+            <div class="pa-5">
+                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.h6">@_selectedItem?.Title</MudText>
+                        <MudText Typo="Typo.caption" Color="Color.Tertiary">Statistieken</MudText>
+                    </MudStack>
+                    <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Small"
+                                   OnClick="CloseStatsDialog" />
+                </MudStack>
                 @if (_statsLoading)
                 {
-                    <MudProgressLinear Indeterminate Color="Color.Primary" />
+                    <MudProgressLinear Indeterminate Color="Color.Primary" Class="rounded-lg" />
                 }
                 else if (_visitStats is not null)
                 {
-                    <MudAlert Severity="Severity.Info" Class="mb-4" Variant="Variant.Outlined">
-                        <MudText Typo="Typo.h5" Inline>@_visitStats.TotalVisits</MudText>
-                        <MudText Typo="Typo.body1" Inline Class="ml-2">totale bezoeken</MudText>
-                    </MudAlert>
-
-                    <MudTabs Elevation="0" Rounded ApplyEffectsToContainer Class="mb-2">
-                        <MudTabPanel Text="Per dag (30 dagen)">
-                            <ApexChart TItem="VisitDataPoint" Height="300">
-                                <ApexPointSeries TItem="VisitDataPoint"
-                                                 Items="_visitStats.DailyVisits"
-                                                 SeriesType="SeriesType.Bar"
-                                                 Name="Bezoeken"
-                                                 XValue="@(p => p.Date.ToString("dd/MM"))"
-                                                 YValue="@(p => p.Count)" />
-                            </ApexChart>
+                    <MudPaper Elevation="0" Class="pa-4 rounded-lg mb-4"
+                              Style="background: linear-gradient(135deg, #6366f1, #818cf8); color: white;">
+                        <MudText Typo="Typo.caption" Style="opacity: 0.85;">TOTALE BEZOEKEN</MudText>
+                        <MudText Typo="Typo.h3" Style="font-weight: 700;">@_visitStats.TotalVisits</MudText>
+                    </MudPaper>
+                    <MudTabs Elevation="0" Rounded ApplyEffectsToContainer>
+                        <MudTabPanel Text="30 dagen">
+                            <div class="pt-3">
+                                <ApexChart TItem="VisitDataPoint" Height="280">
+                                    <ApexPointSeries TItem="VisitDataPoint"
+                                                     Items="_visitStats.DailyVisits"
+                                                     SeriesType="SeriesType.Area"
+                                                     Name="Bezoeken"
+                                                     XValue="@(p => p.Date.ToString("dd/MM"))"
+                                                     YValue="@(p => p.Count)" />
+                                </ApexChart>
+                            </div>
                         </MudTabPanel>
-                        <MudTabPanel Text="Per week (12 weken)">
-                            <ApexChart TItem="VisitDataPoint" Height="300">
-                                <ApexPointSeries TItem="VisitDataPoint"
-                                                 Items="_visitStats.WeeklyVisits"
-                                                 SeriesType="SeriesType.Bar"
-                                                 Name="Bezoeken"
-                                                 XValue="@(p => $"Week {p.Date:dd/MM}")"
-                                                 YValue="@(p => p.Count)" />
-                            </ApexChart>
+                        <MudTabPanel Text="12 weken">
+                            <div class="pt-3">
+                                <ApexChart TItem="VisitDataPoint" Height="280">
+                                    <ApexPointSeries TItem="VisitDataPoint"
+                                                     Items="_visitStats.WeeklyVisits"
+                                                     SeriesType="SeriesType.Bar"
+                                                     Name="Bezoeken"
+                                                     XValue="@(p => $"W {p.Date:dd/MM}")"
+                                                     YValue="@(p => p.Count)" />
+                                </ApexChart>
+                            </div>
                         </MudTabPanel>
-                        <MudTabPanel Text="Per maand (12 maanden)">
-                            <ApexChart TItem="VisitDataPoint" Height="300">
-                                <ApexPointSeries TItem="VisitDataPoint"
-                                                 Items="_visitStats.MonthlyVisits"
-                                                 SeriesType="SeriesType.Bar"
-                                                 Name="Bezoeken"
-                                                 XValue="@(p => p.Date.ToString("MMM yy"))"
-                                                 YValue="@(p => p.Count)" />
-                            </ApexChart>
+                        <MudTabPanel Text="12 maanden">
+                            <div class="pt-3">
+                                <ApexChart TItem="VisitDataPoint" Height="280">
+                                    <ApexPointSeries TItem="VisitDataPoint"
+                                                     Items="_visitStats.MonthlyVisits"
+                                                     SeriesType="SeriesType.Bar"
+                                                     Name="Bezoeken"
+                                                     XValue="@(p => p.Date.ToString("MMM yy"))"
+                                                     YValue="@(p => p.Count)" />
+                                </ApexChart>
+                            </div>
                         </MudTabPanel>
                     </MudTabs>
                 }
-            </MudCardContent>
-        </MudCard>
+            </div>
+        </MudPaper>
     </MudOverlay>
 }
 

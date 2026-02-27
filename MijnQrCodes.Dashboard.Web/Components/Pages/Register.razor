@@ -3,57 +3,73 @@
 
 <PageTitle>Registreren - MijnQrCodes</PageTitle>
 
-<div style="display: flex; justify-content: center; align-items: center; min-height: 80vh;">
-    <div style="width: 100%; max-width: 400px; padding: 2rem;">
-        <h3 style="text-align: center; margin-bottom: 1.5rem;">
-            <span>📝</span> Registreren
-        </h3>
+<div style="display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 2rem;">
+    <MudPaper Elevation="0" Style="width: 100%; max-width: 400px; border: 1px solid var(--mud-palette-lines-default);"
+              Class="pa-8 rounded-lg">
+        <MudStack AlignItems="AlignItems.Center" Spacing="1" Class="mb-6">
+            <MudAvatar Size="Size.Large" Style="background: linear-gradient(135deg, #8b5cf6, #a78bfa); width: 56px; height: 56px;">
+                <MudIcon Icon="@Icons.Material.Outlined.PersonAdd" Style="color: white; font-size: 1.8rem;" />
+            </MudAvatar>
+            <MudText Typo="Typo.h5" Class="mt-2">Account aanmaken</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Tertiary">Registreer voor MijnQrCodes</MudText>
+        </MudStack>
 
         @if (Registered == "true")
         {
-            <div style="background: #e8f5e9; color: #2e7d32; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+            <MudAlert Severity="Severity.Success" Variant="Variant.Text" Class="mb-4">
                 @if (AutoApproved == "true")
                 {
-                    <text>Account aangemaakt! Je kunt nu <a href="/login">aanmelden</a>.</text>
+                    <text>Account aangemaakt! Je kunt nu <MudLink Href="/login" Color="Color.Primary" Style="font-weight: 600;">aanmelden</MudLink>.</text>
                 }
                 else
                 {
-                    <text>Account aangemaakt! Een beheerder moet je account eerst goedkeuren voordat je kunt aanmelden.</text>
+                    <text>Account aangemaakt! Een beheerder moet je account eerst goedkeuren.</text>
                 }
-            </div>
+            </MudAlert>
         }
         else
         {
             @if (!string.IsNullOrEmpty(Error))
             {
-                <div style="background: #ffebee; color: #c62828; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                <MudAlert Severity="Severity.Error" Variant="Variant.Text" Dense Class="mb-4"
+                          Style="font-size: 0.85rem;">
                     @Uri.UnescapeDataString(Error)
-                </div>
+                </MudAlert>
             }
 
             <form method="post" action="/api/register">
-                <div style="margin-bottom: 1rem;">
-                    <label>Gebruikersnaam</label>
-                    <input name="username" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;" />
-                </div>
-                <div style="margin-bottom: 1rem;">
-                    <label>Wachtwoord</label>
-                    <input name="password" type="password" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;" />
-                </div>
-                <div style="margin-bottom: 1.5rem;">
-                    <label>Wachtwoord bevestigen</label>
-                    <input name="confirmPassword" type="password" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;" />
-                </div>
-                <button type="submit" style="width: 100%; padding: 0.75rem; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1rem;">
-                    Registreren
-                </button>
+                <MudStack Spacing="3">
+                    <div>
+                        <MudText Typo="Typo.caption" Style="font-weight: 600;" Class="mb-1">Gebruikersnaam</MudText>
+                        <input name="username" autocomplete="username"
+                               style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--mud-palette-lines-default); border-radius: 8px; font-size: 0.9rem; background: transparent; color: var(--mud-palette-text-primary); outline: none;"
+                               onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor=''" />
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.caption" Style="font-weight: 600;" Class="mb-1">Wachtwoord</MudText>
+                        <input name="password" type="password" autocomplete="new-password"
+                               style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--mud-palette-lines-default); border-radius: 8px; font-size: 0.9rem; background: transparent; color: var(--mud-palette-text-primary); outline: none;"
+                               onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor=''" />
+                    </div>
+                    <div>
+                        <MudText Typo="Typo.caption" Style="font-weight: 600;" Class="mb-1">Wachtwoord bevestigen</MudText>
+                        <input name="confirmPassword" type="password" autocomplete="new-password"
+                               style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--mud-palette-lines-default); border-radius: 8px; font-size: 0.9rem; background: transparent; color: var(--mud-palette-text-primary); outline: none;"
+                               onfocus="this.style.borderColor='#6366f1'" onblur="this.style.borderColor=''" />
+                    </div>
+                    <button type="submit"
+                            style="width: 100%; padding: 0.7rem; background: linear-gradient(135deg, #8b5cf6, #a78bfa); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.9rem; font-weight: 600; margin-top: 0.5rem;">
+                        Registreren
+                    </button>
+                </MudStack>
             </form>
 
-            <p style="text-align: center; margin-top: 1rem;">
-                Al een account? <a href="/login">Aanmelden</a>
-            </p>
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.body2" Align="Align.Center" Color="Color.Tertiary">
+                Al een account? <MudLink Href="/login" Color="Color.Primary" Typo="Typo.body2" Style="font-weight: 600;">Aanmelden</MudLink>
+            </MudText>
         }
-    </div>
+    </MudPaper>
 </div>
 
 @code {

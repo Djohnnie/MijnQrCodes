@@ -8,81 +8,115 @@
 
 <PageTitle>Gebruikers - MijnQrCodes</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
-    <MudText Typo="Typo.h4" Class="mb-4">Gebruikersbeheer</MudText>
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+    <MudText Typo="Typo.h4" Class="mb-6">Gebruikers</MudText>
 
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate Color="Color.Primary" />
+        <MudStack Spacing="2">
+            @for (var i = 0; i < 4; i++)
+            {
+                <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="72px" Class="rounded-lg" />
+            }
+        </MudStack>
     }
     else
     {
-        <MudTable Items="_users" Hover Elevation="2">
-            <HeaderContent>
-                <MudTh>Gebruikersnaam</MudTh>
-                <MudTh>Status</MudTh>
-                <MudTh>Aangemaakt</MudTh>
-                <MudTh>Acties</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="Gebruikersnaam">@context.Username</MudTd>
-                <MudTd DataLabel="Status">
-                    @if (context.IsApproved)
-                    {
-                        <MudChip T="string" Color="Color.Success" Size="Size.Small">Goedgekeurd</MudChip>
-                    }
-                    else
-                    {
-                        <MudChip T="string" Color="Color.Warning" Size="Size.Small">Wacht op goedkeuring</MudChip>
-                    }
-                    @if (context.MustChangePassword)
-                    {
-                        <MudChip T="string" Color="Color.Info" Size="Size.Small">Wachtwoord reset</MudChip>
-                    }
-                </MudTd>
-                <MudTd DataLabel="Aangemaakt">@context.CreatedAt.ToString("dd-MM-yyyy HH:mm")</MudTd>
-                <MudTd DataLabel="Acties">
-                    @if (!context.IsApproved)
-                    {
-                        <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small"
-                                   StartIcon="@Icons.Material.Filled.Check"
-                                   OnClick="() => ApproveUser(context)" Class="mr-2">
-                            Goedkeuren
-                        </MudButton>
-                    }
-                    <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small"
-                               StartIcon="@Icons.Material.Filled.LockReset"
-                               OnClick="() => ResetPassword(context)">
-                        Wachtwoord resetten
-                    </MudButton>
-                </MudTd>
-            </RowTemplate>
-        </MudTable>
+        <MudPaper Elevation="0" Class="rounded-lg" Style="border: 1px solid var(--mud-palette-lines-default); overflow: hidden;">
+            <MudTable Items="_users" Hover Dense="false" Breakpoint="Breakpoint.Sm" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Gebruiker</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh>Aangemaakt</MudTh>
+                    <MudTh Style="text-align: right;">Acties</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Gebruiker">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                            <MudAvatar Size="Size.Small"
+                                       Style="@($"background: {GetAvatarColor(context.Username)}; color: white; font-weight: 600; font-size: 0.75rem;")">
+                                @context.Username[..1].ToUpper()
+                            </MudAvatar>
+                            <MudText Typo="Typo.body2" Style="font-weight: 600;">@context.Username</MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudStack Row Spacing="1">
+                            @if (context.IsApproved)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success" Variant="Variant.Text"
+                                         Style="font-weight: 500;">
+                                    Goedgekeurd
+                                </MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Warning" Variant="Variant.Text"
+                                         Style="font-weight: 500;">
+                                    Wachtend
+                                </MudChip>
+                            }
+                            @if (context.MustChangePassword)
+                            {
+                                <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Text"
+                                         Style="font-weight: 500;">
+                                    Reset
+                                </MudChip>
+                            }
+                        </MudStack>
+                    </MudTd>
+                    <MudTd DataLabel="Aangemaakt">
+                        <MudText Typo="Typo.body2" Color="Color.Tertiary">
+                            @context.CreatedAt.ToString("dd MMM yyyy")
+                        </MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Acties" Style="text-align: right;">
+                        <MudStack Row Spacing="1" Justify="Justify.FlexEnd">
+                            @if (!context.IsApproved)
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Success" Size="Size.Small"
+                                           StartIcon="@Icons.Material.Outlined.Check"
+                                           Style="text-transform: none; font-weight: 600;"
+                                           OnClick="() => ApproveUser(context)">
+                                    Goedkeuren
+                                </MudButton>
+                            }
+                            <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small"
+                                       StartIcon="@Icons.Material.Outlined.LockReset"
+                                       Style="text-transform: none;"
+                                       OnClick="() => ResetPassword(context)">
+                                Reset
+                            </MudButton>
+                        </MudStack>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
     }
 </MudContainer>
 
 @if (_showTempPasswordDialog)
 {
     <MudOverlay Visible="@_showTempPasswordDialog" OnClick="() => _showTempPasswordDialog = false" DarkBackground ZIndex="1300">
-        <MudCard Style="max-width: 450px; margin: auto;" @onclick:stopPropagation="true">
-            <MudCardHeader>
-                <CardHeaderContent>
+        <MudPaper Class="rounded-lg" Style="max-width: 420px; margin: auto; overflow: hidden;"
+                  @onclick:stopPropagation="true" Elevation="8">
+            <div class="pa-5">
+                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
                     <MudText Typo="Typo.h6">Tijdelijk wachtwoord</MudText>
-                </CardHeaderContent>
-                <CardHeaderActions>
-                    <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="() => _showTempPasswordDialog = false" />
-                </CardHeaderActions>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText Class="mb-2">Het wachtwoord van <strong>@_resetUsername</strong> is gereset.</MudText>
-                <MudText>Tijdelijk wachtwoord:</MudText>
-                <MudTextField Value="@_tempPassword" ReadOnly Variant="Variant.Outlined" Class="mt-2"
-                              Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Filled.ContentCopy" />
-                <MudText Typo="Typo.caption" Color="Color.Warning" Class="mt-2">
-                    De gebruiker moet dit wachtwoord wijzigen bij het volgende aanmelden.
+                    <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Small"
+                                   OnClick="() => _showTempPasswordDialog = false" />
+                </MudStack>
+                <MudText Class="mb-3">
+                    Het wachtwoord van <strong>@_resetUsername</strong> is gereset.
                 </MudText>
-            </MudCardContent>
-        </MudCard>
+                <MudTextField Value="@_tempPassword" ReadOnly Variant="Variant.Outlined" Label="Tijdelijk wachtwoord"
+                              Adornment="Adornment.End" AdornmentIcon="@Icons.Material.Outlined.ContentCopy" />
+                <MudAlert Severity="Severity.Warning" Variant="Variant.Text" Dense Class="mt-3"
+                          Style="font-size: 0.8rem;">
+                    De gebruiker moet dit wachtwoord wijzigen bij het volgende aanmelden.
+                </MudAlert>
+            </div>
+        </MudPaper>
     </MudOverlay>
 }
 
@@ -141,5 +175,11 @@
         {
             Snackbar.Add("Er is iets misgegaan.", Severity.Error);
         }
+    }
+
+    private static string GetAvatarColor(string name)
+    {
+        var colors = new[] { "#6366f1", "#8b5cf6", "#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#ec4899", "#14b8a6" };
+        return colors[Math.Abs(name.GetHashCode()) % colors.Length];
     }
 }

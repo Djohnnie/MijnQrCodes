@@ -6,104 +6,123 @@
 
 <PageTitle>Dashboard - MijnQrCodes</PageTitle>
 
-<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
-    <MudText Typo="Typo.h4" Class="mb-4">Dashboard</MudText>
-
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
     @if (_loading)
     {
-        <MudProgressLinear Indeterminate Color="Color.Primary" />
+        <MudStack Spacing="4">
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="40px" Width="200px" />
+            <MudGrid Spacing="3">
+                @for (var i = 0; i < 6; i++)
+                {
+                    <MudItem xs="12" sm="6" md="4" lg="2">
+                        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="120px" />
+                    </MudItem>
+                }
+            </MudGrid>
+        </MudStack>
     }
     else if (_stats is not null)
     {
-        <MudGrid Spacing="4">
-            <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="2" Class="pa-6 d-flex flex-column align-center">
-                    <MudIcon Icon="@Icons.Material.Filled.Link" Color="Color.Primary" Size="Size.Large" />
-                    <MudText Typo="Typo.h3" Class="mt-2">@_stats.TotalLinks</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Tertiary">Totale links</MudText>
+        <MudText Typo="Typo.h4" Class="mb-6">Dashboard</MudText>
+
+        <MudGrid Spacing="3">
+            <MudItem xs="6" sm="4" lg="2">
+                <MudPaper Elevation="0" Class="pa-4 rounded-lg stat-card"
+                          Style="background: linear-gradient(135deg, #6366f1 0%, #818cf8 100%); color: white;">
+                    <MudText Typo="Typo.caption" Style="opacity: 0.85; font-weight: 500;">TOTALE LINKS</MudText>
+                    <MudText Typo="Typo.h4" Style="font-weight: 700;" Class="mt-1">@_stats.TotalLinks</MudText>
                 </MudPaper>
             </MudItem>
-            <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="2" Class="pa-6 d-flex flex-column align-center">
-                    <MudIcon Icon="@Icons.Material.Filled.TouchApp" Color="Color.Secondary" Size="Size.Large" />
-                    <MudText Typo="Typo.h3" Class="mt-2">@_stats.TotalClicks</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Tertiary">Totale kliks</MudText>
+            <MudItem xs="6" sm="4" lg="2">
+                <MudPaper Elevation="0" Class="pa-4 rounded-lg stat-card"
+                          Style="background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%); color: white;">
+                    <MudText Typo="Typo.caption" Style="opacity: 0.85; font-weight: 500;">TOTALE KLIKS</MudText>
+                    <MudText Typo="Typo.h4" Style="font-weight: 700;" Class="mt-1">@_stats.TotalClicks</MudText>
                 </MudPaper>
             </MudItem>
-            <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="2" Class="pa-6 d-flex flex-column align-center">
-                    <MudIcon Icon="@Icons.Material.Filled.CalendarToday" Color="Color.Info" Size="Size.Large" />
-                    <MudText Typo="Typo.h3" Class="mt-2">@_stats.ClicksToday</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Tertiary">Kliks vandaag</MudText>
+            <MudItem xs="6" sm="4" lg="2">
+                <MudPaper Elevation="0" Class="pa-4 rounded-lg stat-card"
+                          Style="background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); color: white;">
+                    <MudText Typo="Typo.caption" Style="opacity: 0.85; font-weight: 500;">VANDAAG</MudText>
+                    <MudText Typo="Typo.h4" Style="font-weight: 700;" Class="mt-1">@_stats.ClicksToday</MudText>
                 </MudPaper>
             </MudItem>
-            <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="2" Class="pa-6 d-flex flex-column align-center">
-                    <MudIcon Icon="@Icons.Material.Filled.DateRange" Color="Color.Success" Size="Size.Large" />
-                    <MudText Typo="Typo.h3" Class="mt-2">@_stats.ClicksThisWeek</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Tertiary">Kliks deze week</MudText>
+            <MudItem xs="6" sm="4" lg="2">
+                <MudPaper Elevation="0" Class="pa-4 rounded-lg stat-card"
+                          Style="background: linear-gradient(135deg, #22c55e 0%, #4ade80 100%); color: white;">
+                    <MudText Typo="Typo.caption" Style="opacity: 0.85; font-weight: 500;">DEZE WEEK</MudText>
+                    <MudText Typo="Typo.h4" Style="font-weight: 700;" Class="mt-1">@_stats.ClicksThisWeek</MudText>
                 </MudPaper>
             </MudItem>
-            <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="2" Class="pa-6 d-flex flex-column align-center">
-                    <MudIcon Icon="@Icons.Material.Filled.EventNote" Color="Color.Warning" Size="Size.Large" />
-                    <MudText Typo="Typo.h3" Class="mt-2">@_stats.ClicksThisMonth</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Tertiary">Kliks deze maand</MudText>
+            <MudItem xs="6" sm="4" lg="2">
+                <MudPaper Elevation="0" Class="pa-4 rounded-lg stat-card"
+                          Style="background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 100%); color: white;">
+                    <MudText Typo="Typo.caption" Style="opacity: 0.85; font-weight: 500;">DEZE MAAND</MudText>
+                    <MudText Typo="Typo.h4" Style="font-weight: 700;" Class="mt-1">@_stats.ClicksThisMonth</MudText>
                 </MudPaper>
             </MudItem>
-            <MudItem xs="12" sm="6" md="4">
-                <MudPaper Elevation="2" Class="pa-6 d-flex flex-column align-center">
-                    <MudIcon Icon="@Icons.Material.Filled.Celebration" Color="Color.Error" Size="Size.Large" />
-                    <MudText Typo="Typo.h3" Class="mt-2">@_stats.ClicksThisYear</MudText>
-                    <MudText Typo="Typo.body1" Color="Color.Tertiary">Kliks dit jaar</MudText>
+            <MudItem xs="6" sm="4" lg="2">
+                <MudPaper Elevation="0" Class="pa-4 rounded-lg stat-card"
+                          Style="background: linear-gradient(135deg, #ef4444 0%, #f87171 100%); color: white;">
+                    <MudText Typo="Typo.caption" Style="opacity: 0.85; font-weight: 500;">DIT JAAR</MudText>
+                    <MudText Typo="Typo.h4" Style="font-weight: 700;" Class="mt-1">@_stats.ClicksThisYear</MudText>
                 </MudPaper>
             </MudItem>
         </MudGrid>
 
-        <MudGrid Spacing="4" Class="mt-4">
+        <MudGrid Spacing="3" Class="mt-4">
             <MudItem xs="12" md="7">
-                <MudPaper Elevation="2" Class="pa-4">
-                    <MudText Typo="Typo.h6" Class="mb-3">
-                        <MudIcon Icon="@Icons.Material.Filled.EmojiEvents" Class="mr-1" />
-                        Top 5 links
-                    </MudText>
+                <MudPaper Elevation="0" Class="pa-5 rounded-lg" Style="border: 1px solid var(--mud-palette-lines-default);">
+                    <MudStack Row AlignItems="AlignItems.Center" Spacing="2" Class="mb-4">
+                        <MudIcon Icon="@Icons.Material.Outlined.EmojiEvents" Color="Color.Warning" />
+                        <MudText Typo="Typo.h6">Top 5 links</MudText>
+                    </MudStack>
                     @if (_stats.TopLinks.Count == 0)
                     {
-                        <MudText Typo="Typo.body2" Color="Color.Tertiary">Nog geen kliks geregistreerd.</MudText>
+                        <MudStack AlignItems="AlignItems.Center" Class="py-8" Spacing="2">
+                            <MudIcon Icon="@Icons.Material.Outlined.Analytics" Size="Size.Large" Color="Color.Tertiary" />
+                            <MudText Color="Color.Tertiary">Nog geen kliks geregistreerd</MudText>
+                        </MudStack>
                     }
                     else
                     {
-                        <MudSimpleTable Hover Dense>
-                            <thead>
-                                <tr>
-                                    <th>#</th>
-                                    <th>Titel</th>
-                                    <th>Code</th>
-                                    <th style="text-align: right;">Kliks</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @for (var i = 0; i < _stats.TopLinks.Count; i++)
-                                {
-                                    var link = _stats.TopLinks[i];
-                                    <tr>
-                                        <td>@(i + 1)</td>
-                                        <td>@link.Title</td>
-                                        <td><MudLink Href="@($"/urls")" Color="Color.Primary">/@link.ShortCode</MudLink></td>
-                                        <td style="text-align: right;"><strong>@link.Clicks</strong></td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </MudSimpleTable>
+                        <MudStack Spacing="2">
+                            @for (var i = 0; i < _stats.TopLinks.Count; i++)
+                            {
+                                var link = _stats.TopLinks[i];
+                                var rank = i + 1;
+                                <MudPaper Elevation="0" Class="pa-3 rounded-lg d-flex align-center"
+                                          Style="border: 1px solid var(--mud-palette-lines-default);">
+                                    <MudAvatar Size="Size.Small" Style="@($"background: {GetRankColor(rank)}; color: white; font-weight: 600;")">
+                                        @rank
+                                    </MudAvatar>
+                                    <MudStack Spacing="0" Class="ml-3 flex-grow-1" Style="min-width: 0;">
+                                        <MudText Typo="Typo.body2" Style="font-weight: 600;">@link.Title</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Primary">/@link.ShortCode</MudText>
+                                    </MudStack>
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text"
+                                             Style="font-weight: 700;">
+                                        @link.Clicks
+                                    </MudChip>
+                                </MudPaper>
+                            }
+                        </MudStack>
                     }
                 </MudPaper>
             </MudItem>
             <MudItem xs="12" md="5">
-                <MudPaper Elevation="2" Class="pa-6 d-flex flex-column align-center justify-center" Style="height: 100%; min-height: 200px;">
-                    <MudIcon Icon="@Icons.Material.Filled.Star" Color="Color.Warning" Size="Size.Large" />
-                    <MudText Typo="Typo.h6" Class="mt-2">Beste dag van de week</MudText>
-                    <MudText Typo="Typo.h4" Color="Color.Primary" Class="mt-1">@_stats.BestDayOfWeek</MudText>
-                    <MudText Typo="Typo.body2" Color="Color.Tertiary">@_stats.BestDayOfWeekClicks kliks</MudText>
+                <MudPaper Elevation="0" Class="pa-5 rounded-lg d-flex flex-column align-center justify-center"
+                          Style="border: 1px solid var(--mud-palette-lines-default); height: 100%; min-height: 260px;">
+                    <MudAvatar Size="Size.Large" Style="background: linear-gradient(135deg, #f59e0b, #fbbf24); width: 64px; height: 64px;">
+                        <MudIcon Icon="@Icons.Material.Filled.Star" Style="color: white; font-size: 2rem;" />
+                    </MudAvatar>
+                    <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="mt-4">Beste dag van de week</MudText>
+                    <MudText Typo="Typo.h4" Color="Color.Primary" Class="mt-1" Style="font-weight: 700;">
+                        @_stats.BestDayOfWeek
+                    </MudText>
+                    <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" Class="mt-2">
+                        @_stats.BestDayOfWeekClicks kliks
+                    </MudChip>
                 </MudPaper>
             </MudItem>
         </MudGrid>
@@ -119,4 +138,12 @@
         _stats = await Mediator.Send(new GetDashboardStatsQuery());
         _loading = false;
     }
+
+    private static string GetRankColor(int rank) => rank switch
+    {
+        1 => "#f59e0b",
+        2 => "#94a3b8",
+        3 => "#cd7f32",
+        _ => "#6366f1"
+    };
 }

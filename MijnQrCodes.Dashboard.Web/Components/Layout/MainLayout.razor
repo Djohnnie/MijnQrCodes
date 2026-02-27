@@ -2,41 +2,60 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @inject IJSRuntime JS
 
-<MudThemeProvider @bind-IsDarkMode="_isDarkMode" />
+<MudThemeProvider Theme="_theme" @bind-IsDarkMode="_isDarkMode" />
 
 <MudLayout>
-    <MudAppBar Elevation="1" Color="Color.Primary">
+    <MudAppBar Elevation="0" Dense
+               Style="@(_isDarkMode
+                   ? "background: var(--mud-palette-surface); border-bottom: 1px solid var(--mud-palette-lines-default);"
+                   : "background: white; border-bottom: 1px solid #e0e0e0;")">
         <AuthorizeView>
             <Authorized>
-                <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit"
+                <MudIconButton Icon="@Icons.Material.Outlined.Menu"
                                OnClick="ToggleDrawer" aria-label="Menu" />
             </Authorized>
         </AuthorizeView>
-        <MudIcon Icon="@Icons.Material.Filled.QrCode2" Class="mr-2" />
-        <MudText Typo="Typo.h6">MijnQrCodes</MudText>
+        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+            <MudIcon Icon="@Icons.Material.Filled.QrCode2" Color="Color.Primary" />
+            <MudText Typo="Typo.h6" Style="font-weight: 700; letter-spacing: -0.5px;">MijnQrCodes</MudText>
+        </MudStack>
         <MudSpacer />
-        <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Filled.LightMode : Icons.Material.Filled.DarkMode)"
-                       Color="Color.Inherit" OnClick="ToggleDarkMode" aria-label="Dark mode" />
+        <AuthorizeView>
+            <Authorized>
+                <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="mr-2 d-none d-sm-block">
+                    @context.User.Identity?.Name
+                </MudText>
+            </Authorized>
+        </AuthorizeView>
+        <MudTooltip Text="@(_isDarkMode ? "Licht thema" : "Donker thema")">
+            <MudIconButton Icon="@(_isDarkMode ? Icons.Material.Outlined.LightMode : Icons.Material.Outlined.DarkMode)"
+                           OnClick="ToggleDarkMode" aria-label="Dark mode" />
+        </MudTooltip>
     </MudAppBar>
     <AuthorizeView>
         <Authorized>
-            <MudDrawer @bind-Open="_drawerOpen" Elevation="1" ClipMode="DrawerClipMode.Always">
-                <MudNavMenu>
+            <MudDrawer @bind-Open="_drawerOpen" Elevation="0" Variant="DrawerVariant.Mini"
+                       ClipMode="DrawerClipMode.Always" MiniWidth="72px" Width="240px"
+                       Style="@(_isDarkMode
+                           ? "border-right: 1px solid var(--mud-palette-lines-default);"
+                           : "border-right: 1px solid #e0e0e0;")">
+                <MudNavMenu Bordered Class="mt-2">
                     <MudNavLink Href="/" Match="NavLinkMatch.All"
-                                Icon="@Icons.Material.Filled.Dashboard">Dashboard</MudNavLink>
+                                Icon="@Icons.Material.Outlined.SpaceDashboard">Dashboard</MudNavLink>
                     <MudNavLink Href="/urls" Match="NavLinkMatch.Prefix"
-                                Icon="@Icons.Material.Filled.Link">URL's</MudNavLink>
+                                Icon="@Icons.Material.Outlined.Link">URL's</MudNavLink>
                     <MudNavLink Href="/users" Match="NavLinkMatch.Prefix"
-                                Icon="@Icons.Material.Filled.People">Gebruikers</MudNavLink>
+                                Icon="@Icons.Material.Outlined.Group">Gebruikers</MudNavLink>
                 </MudNavMenu>
                 <MudSpacer />
-                <MudNavMenu>
-                    <MudNavLink Href="/logout" Icon="@Icons.Material.Filled.Logout">Afmelden</MudNavLink>
+                <MudNavMenu Bordered Class="mb-2">
+                    <MudNavLink Href="/logout" Icon="@Icons.Material.Outlined.Logout"
+                                Style="color: var(--mud-palette-error);">Afmelden</MudNavLink>
                 </MudNavMenu>
             </MudDrawer>
         </Authorized>
     </AuthorizeView>
-    <MudMainContent>
+    <MudMainContent Style="min-height: 100vh;">
         <MudPopoverProvider />
         <MudDialogProvider />
         <MudSnackbarProvider />
@@ -47,6 +66,71 @@
 @code {
     private bool _drawerOpen = true;
     private bool _isDarkMode;
+
+    private readonly MudTheme _theme = new()
+    {
+        PaletteLight = new PaletteLight
+        {
+            Primary = "#6366f1",
+            Secondary = "#8b5cf6",
+            Tertiary = "#94a3b8",
+            Info = "#3b82f6",
+            Success = "#22c55e",
+            Warning = "#f59e0b",
+            Error = "#ef4444",
+            AppbarBackground = "#ffffff",
+            AppbarText = "#1e293b",
+            Background = "#f8fafc",
+            Surface = "#ffffff",
+            DrawerBackground = "#ffffff",
+            TextPrimary = "#1e293b",
+            TextSecondary = "#475569",
+            ActionDefault = "#64748b",
+            LinesDefault = "#e2e8f0",
+        },
+        PaletteDark = new PaletteDark
+        {
+            Primary = "#818cf8",
+            Secondary = "#a78bfa",
+            Tertiary = "#94a3b8",
+            Info = "#60a5fa",
+            Success = "#4ade80",
+            Warning = "#fbbf24",
+            Error = "#f87171",
+            AppbarBackground = "#1e293b",
+            AppbarText = "#e2e8f0",
+            Background = "#0f172a",
+            Surface = "#1e293b",
+            DrawerBackground = "#1e293b",
+            TextPrimary = "#f1f5f9",
+            TextSecondary = "#cbd5e1",
+            ActionDefault = "#94a3b8",
+            LinesDefault = "#334155",
+        },
+        Typography = new Typography
+        {
+            Default = new DefaultTypography
+            {
+                FontFamily = ["Inter", "Roboto", "Helvetica", "Arial", "sans-serif"]
+            },
+            H4 = new H4Typography
+            {
+                FontWeight = "700", FontSize = "1.75rem", LetterSpacing = "-0.02em"
+            },
+            H5 = new H5Typography
+            {
+                FontWeight = "600", FontSize = "1.4rem", LetterSpacing = "-0.01em"
+            },
+            H6 = new H6Typography
+            {
+                FontWeight = "600", FontSize = "1.125rem"
+            },
+        },
+        LayoutProperties = new LayoutProperties
+        {
+            DefaultBorderRadius = "12px",
+        }
+    };
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
