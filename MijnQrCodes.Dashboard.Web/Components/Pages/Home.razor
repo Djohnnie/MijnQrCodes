@@ -65,9 +65,10 @@
                                     </MudText>
                                     <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
                                         <MudIcon Icon="@Icons.Material.Outlined.Link" Size="Size.Small" Color="Color.Primary" />
-                                        <MudText Typo="Typo.body2" Color="Color.Primary" Style="font-weight: 500;">
+                                        <MudLink Href="@($"{NavigationManager.BaseUri}r/{item.ShortCode}")" Target="_blank"
+                                                 Typo="Typo.body2" Style="font-weight: 500;">
                                             /r/@item.ShortCode
-                                        </MudText>
+                                        </MudLink>
                                     </MudStack>
                                 </MudStack>
                                 <div style="width: 48px; height: 48px; border-radius: 8px; overflow: hidden; flex-shrink: 0; background: @item.BackgroundColor; display: flex; align-items: center; justify-content: center; cursor: pointer;"
