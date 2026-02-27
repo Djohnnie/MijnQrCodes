@@ -27,11 +27,12 @@
     {
         <MudStack Row AlignItems="AlignItems.Center" Class="mb-4" Spacing="2" Wrap="Wrap.Wrap">
             <MudIcon Icon="@Icons.Material.Outlined.FilterAlt" Size="Size.Small" Color="Color.Tertiary" />
-            <MudChipSet T="Guid" MultiSelection SelectedValues="_selectedFilterTags" SelectedValuesChanged="OnFilterChanged">
+            <MudChipSet T="Guid" SelectionMode="SelectionMode.MultiSelection" SelectedValues="_selectedFilterTags" SelectedValuesChanged="OnFilterChanged">
                 @foreach (var tag in _allTags)
                 {
-                    <MudChip T="Guid" Value="tag.Id" Variant="Variant.Text"
-                             Style="@($"border: 1px solid {tag.Color}; color: {tag.Color};")">
+                    <MudChip T="Guid" Value="tag.Id"
+                             Variant="@(_selectedFilterTags.Contains(tag.Id) ? Variant.Filled : Variant.Text)"
+                             Style="@(_selectedFilterTags.Contains(tag.Id) ? $"background: {tag.Color}; color: white;" : $"border: 1px solid {tag.Color}; color: {tag.Color};")">
                         @tag.Name
                     </MudChip>
                 }
@@ -210,11 +211,12 @@
                     @if (_allTags.Count > 0)
                     {
                         <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">Tags</MudText>
-                        <MudChipSet T="Guid" MultiSelection @bind-SelectedValues="_formSelectedTags">
+                        <MudChipSet T="Guid" SelectionMode="SelectionMode.MultiSelection" @bind-SelectedValues="_formSelectedTags">
                             @foreach (var tag in _allTags)
                             {
-                                <MudChip T="Guid" Value="tag.Id" Variant="Variant.Text"
-                                         Style="@($"border: 1px solid {tag.Color}; color: {tag.Color};")">
+                                <MudChip T="Guid" Value="tag.Id"
+                                         Variant="@(_formSelectedTags.Contains(tag.Id) ? Variant.Filled : Variant.Text)"
+                                         Style="@(_formSelectedTags.Contains(tag.Id) ? $"background: {tag.Color}; color: white;" : $"border: 1px solid {tag.Color}; color: {tag.Color};")">
                                     @tag.Name
                                 </MudChip>
                             }
@@ -341,11 +343,8 @@
     private async Task LoadData()
     {
         _loading = true;
-        var urlsTask = Mediator.Send(new GetShortUrlsQuery());
-        var tagsTask = Mediator.Send(new GetTagsQuery());
-        await Task.WhenAll(urlsTask, tagsTask);
-        _shortUrls = urlsTask.Result.ShortUrls;
-        _allTags = tagsTask.Result.Tags;
+        _shortUrls = (await Mediator.Send(new GetShortUrlsQuery())).ShortUrls;
+        _allTags = (await Mediator.Send(new GetTagsQuery())).Tags;
         _loading = false;
     }
 
