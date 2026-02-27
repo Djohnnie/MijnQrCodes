@@ -11,6 +11,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IShortUrlRepository, ShortUrlRepository>();
         services.AddScoped<IShortUrlVisitRepository, ShortUrlVisitRepository>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<ITagRepository, TagRepository>();
 
         return services;
     }

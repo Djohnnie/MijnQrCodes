@@ -28,6 +28,12 @@ public class GetShortUrlsQueryHandler : IRequestHandler<GetShortUrlsQuery, GetSh
                 BackgroundColor = x.BackgroundColor,
                 ForegroundColor = x.ForegroundColor,
                 FinderPatternColor = x.FinderPatternColor,
+                Tags = x.ShortUrlTags.Select(t => new ShortUrlTagDto
+                {
+                    Id = t.Tag.Id,
+                    Name = t.Tag.Name,
+                    Color = t.Tag.Color
+                }).ToList(),
                 CreatedAt = x.CreatedAt,
                 UpdatedAt = x.UpdatedAt
             }).ToList()

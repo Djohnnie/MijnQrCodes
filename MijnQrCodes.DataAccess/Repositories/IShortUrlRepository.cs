@@ -11,4 +11,5 @@ public interface IShortUrlRepository
     Task<ShortUrl?> Update(ShortUrl shortUrl);
     Task<bool> Delete(Guid id);
     Task<bool> ShortCodeExists(string shortCode);
+    Task SetTags(Guid shortUrlId, List<Guid> tagIds);
 }

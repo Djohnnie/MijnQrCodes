@@ -12,4 +12,6 @@ public class ShortUrl
     public string FinderPatternColor { get; set; } = "#212121";
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+
+    public List<ShortUrlTag> ShortUrlTags { get; set; } = [];
 }

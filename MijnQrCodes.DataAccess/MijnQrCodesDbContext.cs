@@ -10,6 +10,8 @@ public class MijnQrCodesDbContext : DbContext
 
     public DbSet<ShortUrl> ShortUrls { get; set; }
     public DbSet<ShortUrlVisit> ShortUrlVisits { get; set; }
+    public DbSet<Tag> Tags { get; set; }
+    public DbSet<ShortUrlTag> ShortUrlTags { get; set; }
     public DbSet<User> Users { get; set; }
 
     public MijnQrCodesDbContext(IConfiguration configuration)
@@ -61,6 +63,31 @@ public class MijnQrCodesDbContext : DbContext
             entity.HasIndex(e => e.Username).IsUnique();
             entity.Property(e => e.Username).HasMaxLength(100).IsRequired();
             entity.Property(e => e.PasswordHash).HasMaxLength(256).IsRequired();
+        });
+
+        modelBuilder.Entity<Tag>(entity =>
+        {
+            entity.ToTable("TAGS");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SysId).ValueGeneratedOnAdd();
+            entity.HasIndex(e => e.SysId).IsClustered(false).IsUnique();
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Color).HasMaxLength(10).HasDefaultValue("#6366f1");
+        });
+
+        modelBuilder.Entity<ShortUrlTag>(entity =>
+        {
+            entity.ToTable("SHORT_URL_TAGS");
+            entity.HasKey(e => new { e.ShortUrlId, e.TagId });
+            entity.HasOne(e => e.ShortUrl)
+                .WithMany(s => s.ShortUrlTags)
+                .HasForeignKey(e => e.ShortUrlId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.Tag)
+                .WithMany(t => t.ShortUrlTags)
+                .HasForeignKey(e => e.TagId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

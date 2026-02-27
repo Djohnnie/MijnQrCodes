@@ -1,6 +1,7 @@
 ﻿@page "/urls"
 @using MediatR
 @using MijnQrCodes.Contracts.ShortUrls
+@using MijnQrCodes.Contracts.Tags
 @using ApexCharts
 @using Color = MudBlazor.Color
 @using Size = MudBlazor.Size
@@ -21,6 +22,22 @@
             Nieuwe URL
         </MudButton>
     </MudStack>
+
+    @if (_allTags.Count > 0)
+    {
+        <MudStack Row AlignItems="AlignItems.Center" Class="mb-4" Spacing="2" Wrap="Wrap.Wrap">
+            <MudIcon Icon="@Icons.Material.Outlined.FilterAlt" Size="Size.Small" Color="Color.Tertiary" />
+            <MudChipSet T="Guid" MultiSelection SelectedValues="_selectedFilterTags" SelectedValuesChanged="OnFilterChanged">
+                @foreach (var tag in _allTags)
+                {
+                    <MudChip T="Guid" Value="tag.Id" Variant="Variant.Text"
+                             Style="@($"border: 1px solid {tag.Color}; color: {tag.Color};")">
+                        @tag.Name
+                    </MudChip>
+                }
+            </MudChipSet>
+        </MudStack>
+    }
 
     @if (_loading)
     {
@@ -52,7 +69,7 @@
     else
     {
         <MudGrid Spacing="3">
-            @foreach (var item in _shortUrls)
+            @foreach (var item in _filteredUrls)
             {
                 <MudItem xs="12" sm="6" md="4">
                     <MudPaper Elevation="0" Class="rounded-lg url-card"
@@ -80,6 +97,18 @@
                                      Style="word-break: break-all; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
                                 @item.OriginalUrl
                             </MudText>
+                            @if (item.Tags.Count > 0)
+                            {
+                                <MudStack Row Spacing="1" Class="mt-2" Wrap="Wrap.Wrap">
+                                    @foreach (var tag in item.Tags)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Text"
+                                                 Style="@($"border: 1px solid {tag.Color}; color: {tag.Color}; font-size: 0.7rem;")">
+                                            @tag.Name
+                                        </MudChip>
+                                    }
+                                </MudStack>
+                            }
                             <MudDivider Class="my-3" />
                             <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
                                 <MudText Typo="Typo.caption" Color="Color.Tertiary">
@@ -178,6 +207,19 @@
                                             ShowAlpha="false" Variant="Variant.Outlined" />
                         </MudItem>
                     </MudGrid>
+                    @if (_allTags.Count > 0)
+                    {
+                        <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">Tags</MudText>
+                        <MudChipSet T="Guid" MultiSelection @bind-SelectedValues="_formSelectedTags">
+                            @foreach (var tag in _allTags)
+                            {
+                                <MudChip T="Guid" Value="tag.Id" Variant="Variant.Text"
+                                         Style="@($"border: 1px solid {tag.Color}; color: {tag.Color};")">
+                                    @tag.Name
+                                </MudChip>
+                            }
+                        </MudChipSet>
+                    }
                 </MudStack>
                 <MudStack Row Justify="Justify.FlexEnd" Class="mt-5" Spacing="2">
                     <MudButton OnClick="CloseFormDialog" Style="text-transform: none;">Annuleren</MudButton>
@@ -264,6 +306,8 @@
 
 @code {
     private List<ShortUrlDto> _shortUrls = [];
+    private List<TagDto> _allTags = [];
+    private IReadOnlyCollection<Guid> _selectedFilterTags = [];
     private bool _loading = true;
 
     private bool _showQrDialog;
@@ -282,6 +326,12 @@
     private MudColor _formBackgroundColor = new("#FFFFFF");
     private MudColor _formForegroundColor = new("#212121");
     private MudColor _formFinderColor = new("#212121");
+    private IReadOnlyCollection<Guid> _formSelectedTags = [];
+
+    private List<ShortUrlDto> _filteredUrls =>
+        _selectedFilterTags.Count == 0
+            ? _shortUrls
+            : _shortUrls.Where(u => u.Tags.Any(t => _selectedFilterTags.Contains(t.Id))).ToList();
 
     protected override async Task OnInitializedAsync()
     {
@@ -291,8 +341,11 @@
     private async Task LoadData()
     {
         _loading = true;
-        var response = await Mediator.Send(new GetShortUrlsQuery());
-        _shortUrls = response.ShortUrls;
+        var urlsTask = Mediator.Send(new GetShortUrlsQuery());
+        var tagsTask = Mediator.Send(new GetTagsQuery());
+        await Task.WhenAll(urlsTask, tagsTask);
+        _shortUrls = urlsTask.Result.ShortUrls;
+        _allTags = tagsTask.Result.Tags;
         _loading = false;
     }
 
@@ -304,6 +357,7 @@
         _formBackgroundColor = new("#FFFFFF");
         _formForegroundColor = new("#212121");
         _formFinderColor = new("#212121");
+        _formSelectedTags = [];
         _showFormDialog = true;
     }
 
@@ -316,6 +370,7 @@
         _formBackgroundColor = new(item.BackgroundColor);
         _formForegroundColor = new(item.ForegroundColor);
         _formFinderColor = new(item.FinderPatternColor);
+        _formSelectedTags = item.Tags.Select(t => t.Id).ToList();
         _showFormDialog = true;
     }
 
@@ -334,7 +389,8 @@
                 OriginalUrl = _formUrl,
                 BackgroundColor = _formBackgroundColor.ToString(MudColorOutputFormats.Hex),
                 ForegroundColor = _formForegroundColor.ToString(MudColorOutputFormats.Hex),
-                FinderPatternColor = _formFinderColor.ToString(MudColorOutputFormats.Hex)
+                FinderPatternColor = _formFinderColor.ToString(MudColorOutputFormats.Hex),
+                TagIds = _formSelectedTags.ToList()
             });
             Snackbar.Add("URL bijgewerkt!", Severity.Success);
         }
@@ -346,7 +402,8 @@
                 OriginalUrl = _formUrl,
                 BackgroundColor = _formBackgroundColor.ToString(MudColorOutputFormats.Hex),
                 ForegroundColor = _formForegroundColor.ToString(MudColorOutputFormats.Hex),
-                FinderPatternColor = _formFinderColor.ToString(MudColorOutputFormats.Hex)
+                FinderPatternColor = _formFinderColor.ToString(MudColorOutputFormats.Hex),
+                TagIds = _formSelectedTags.ToList()
             });
             Snackbar.Add("URL aangemaakt!", Severity.Success);
         }
@@ -414,5 +471,10 @@
     {
         _showStatsDialog = false;
         _visitStats = null;
+    }
+
+    private void OnFilterChanged(IReadOnlyCollection<Guid> values)
+    {
+        _selectedFilterTags = values;
     }
 }

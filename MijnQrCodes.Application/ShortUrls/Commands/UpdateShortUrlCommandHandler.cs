@@ -29,15 +29,24 @@ public class UpdateShortUrlCommandHandler : IRequestHandler<UpdateShortUrlComman
         var updated = await _repository.Update(entity);
         if (updated is null) return null;
 
+        await _repository.SetTags(updated.Id, request.TagIds);
+        updated = await _repository.GetById(updated.Id);
+
         return new ShortUrlDto
         {
-            Id = updated.Id,
+            Id = updated!.Id,
             Title = updated.Title,
             OriginalUrl = updated.OriginalUrl,
             ShortCode = updated.ShortCode,
             BackgroundColor = updated.BackgroundColor,
             ForegroundColor = updated.ForegroundColor,
             FinderPatternColor = updated.FinderPatternColor,
+            Tags = updated.ShortUrlTags.Select(t => new ShortUrlTagDto
+            {
+                Id = t.Tag.Id,
+                Name = t.Tag.Name,
+                Color = t.Tag.Color
+            }).ToList(),
             CreatedAt = updated.CreatedAt,
             UpdatedAt = updated.UpdatedAt
         };

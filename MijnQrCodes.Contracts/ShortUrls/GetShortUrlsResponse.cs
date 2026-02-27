@@ -14,6 +14,14 @@ public class ShortUrlDto
     public string BackgroundColor { get; set; } = "#FFFFFF";
     public string ForegroundColor { get; set; } = "#212121";
     public string FinderPatternColor { get; set; } = "#212121";
+    public List<ShortUrlTagDto> Tags { get; set; } = [];
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
+}
+
+public class ShortUrlTagDto
+{
+    public Guid Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Color { get; set; } = "#6366f1";
 }

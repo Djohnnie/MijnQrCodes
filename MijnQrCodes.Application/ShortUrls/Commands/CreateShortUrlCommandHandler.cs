@@ -30,15 +30,27 @@ public class CreateShortUrlCommandHandler : IRequestHandler<CreateShortUrlComman
 
         var created = await _repository.Create(entity);
 
+        if (request.TagIds.Count > 0)
+        {
+            await _repository.SetTags(created.Id, request.TagIds);
+            created = await _repository.GetById(created.Id);
+        }
+
         return new ShortUrlDto
         {
-            Id = created.Id,
+            Id = created!.Id,
             Title = created.Title,
             OriginalUrl = created.OriginalUrl,
             ShortCode = created.ShortCode,
             BackgroundColor = created.BackgroundColor,
             ForegroundColor = created.ForegroundColor,
             FinderPatternColor = created.FinderPatternColor,
+            Tags = created.ShortUrlTags.Select(t => new ShortUrlTagDto
+            {
+                Id = t.Tag.Id,
+                Name = t.Tag.Name,
+                Color = t.Tag.Color
+            }).ToList(),
             CreatedAt = created.CreatedAt,
             UpdatedAt = created.UpdatedAt
         };

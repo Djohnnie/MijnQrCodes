@@ -1,0 +1,203 @@
+@page "/tags"
+@using MediatR
+@using MijnQrCodes.Contracts.Tags
+@attribute [Microsoft.AspNetCore.Authorization.Authorize]
+@inject IMediator Mediator
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<PageTitle>Tags - MijnQrCodes</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="py-8">
+    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-6">
+        <MudText Typo="Typo.h4">Tags</MudText>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add" Class="rounded-lg"
+                   OnClick="OpenCreateDialog" Style="text-transform: none; font-weight: 600;">
+            Nieuwe tag
+        </MudButton>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudGrid Spacing="3">
+            @for (var i = 0; i < 6; i++)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="80px" Class="rounded-lg" />
+                </MudItem>
+            }
+        </MudGrid>
+    }
+    else if (_tags.Count == 0)
+    {
+        <MudPaper Elevation="0" Class="pa-12 rounded-lg d-flex flex-column align-center"
+                  Style="border: 2px dashed var(--mud-palette-lines-default);">
+            <MudIcon Icon="@Icons.Material.Outlined.Label" Size="@MudBlazor.Size.Large" Color="Color.Tertiary"
+                     Style="font-size: 4rem;" />
+            <MudText Typo="Typo.h6" Color="Color.Tertiary" Class="mt-4">Nog geen tags</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="mt-1 mb-4">
+                Maak je eerste tag aan om URL's te organiseren
+            </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add"
+                       OnClick="OpenCreateDialog" Style="text-transform: none; font-weight: 600;">
+                Nieuwe tag
+            </MudButton>
+        </MudPaper>
+    }
+    else
+    {
+        <MudGrid Spacing="3">
+            @foreach (var tag in _tags)
+            {
+                <MudItem xs="12" sm="6" md="4" lg="3">
+                    <MudPaper Elevation="0" Class="pa-4 rounded-lg"
+                              Style="@($"border: 1px solid var(--mud-palette-lines-default); border-left: 4px solid {tag.Color};")">
+                        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+                            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                                <MudIcon Icon="@Icons.Material.Filled.Circle" Size="@MudBlazor.Size.Small"
+                                         Style="@($"color: {tag.Color};")" />
+                                <MudText Typo="Typo.subtitle1" Style="font-weight: 600;">@tag.Name</MudText>
+                            </MudStack>
+                            <MudStack Row Spacing="0">
+                                <MudTooltip Text="Bewerken">
+                                    <MudIconButton Icon="@Icons.Material.Outlined.Edit" Size="@MudBlazor.Size.Small"
+                                                   Color="Color.Warning" OnClick="() => OpenEditDialog(tag)" />
+                                </MudTooltip>
+                                <MudTooltip Text="Verwijderen">
+                                    <MudIconButton Icon="@Icons.Material.Outlined.DeleteOutline" Size="@MudBlazor.Size.Small"
+                                                   Color="Color.Error" OnClick="() => ConfirmDelete(tag)" />
+                                </MudTooltip>
+                            </MudStack>
+                        </MudStack>
+                    </MudPaper>
+                </MudItem>
+            }
+        </MudGrid>
+    }
+</MudContainer>
+
+@* Form Dialog *@
+@if (_showFormDialog)
+{
+    <MudOverlay Visible="@_showFormDialog" OnClick="CloseFormDialog" DarkBackground ZIndex="1300">
+        <MudPaper Class="rounded-lg" Style="max-width: 400px; margin: auto; min-width: 320px; overflow: hidden;"
+                  @onclick:stopPropagation="true" Elevation="8">
+            <div class="pa-5">
+                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
+                    <MudText Typo="Typo.h6">@(_isEditing ? "Tag bewerken" : "Nieuwe tag")</MudText>
+                    <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="@MudBlazor.Size.Small"
+                                   OnClick="CloseFormDialog" />
+                </MudStack>
+                <MudStack Spacing="3">
+                    <MudTextField @bind-Value="_formName" Label="Naam" Required
+                                  Variant="Variant.Outlined" Immediate />
+                    <div>
+                        <MudText Typo="Typo.caption" Color="Color.Tertiary" Class="mb-1">Kleur</MudText>
+                        <MudColorPicker @bind-Value="_formColor" ColorPickerMode="ColorPickerMode.HEX"
+                                        ShowAlpha="false" Variant="Variant.Outlined" />
+                    </div>
+                </MudStack>
+                <MudStack Row Justify="Justify.FlexEnd" Class="mt-5" Spacing="2">
+                    <MudButton OnClick="CloseFormDialog" Style="text-transform: none;">Annuleren</MudButton>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveForm"
+                               Style="text-transform: none; font-weight: 600;"
+                               Disabled="@(string.IsNullOrWhiteSpace(_formName))">
+                        @(_isEditing ? "Opslaan" : "Aanmaken")
+                    </MudButton>
+                </MudStack>
+            </div>
+        </MudPaper>
+    </MudOverlay>
+}
+
+@code {
+    private List<TagDto> _tags = [];
+    private bool _loading = true;
+
+    private bool _showFormDialog;
+    private bool _isEditing;
+    private Guid _editingId;
+    private string _formName = string.Empty;
+    private MudColor _formColor = new("#6366f1");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadData();
+    }
+
+    private async Task LoadData()
+    {
+        _loading = true;
+        var response = await Mediator.Send(new GetTagsQuery());
+        _tags = response.Tags;
+        _loading = false;
+    }
+
+    private void OpenCreateDialog()
+    {
+        _isEditing = false;
+        _formName = string.Empty;
+        _formColor = new("#6366f1");
+        _showFormDialog = true;
+    }
+
+    private void OpenEditDialog(TagDto tag)
+    {
+        _isEditing = true;
+        _editingId = tag.Id;
+        _formName = tag.Name;
+        _formColor = new(tag.Color);
+        _showFormDialog = true;
+    }
+
+    private void CloseFormDialog() => _showFormDialog = false;
+
+    private async Task SaveForm()
+    {
+        if (string.IsNullOrWhiteSpace(_formName)) return;
+
+        if (_isEditing)
+        {
+            await Mediator.Send(new UpdateTagCommand
+            {
+                Id = _editingId,
+                Name = _formName,
+                Color = _formColor.ToString(MudColorOutputFormats.Hex)
+            });
+            Snackbar.Add("Tag bijgewerkt!", Severity.Success);
+        }
+        else
+        {
+            await Mediator.Send(new CreateTagCommand
+            {
+                Name = _formName,
+                Color = _formColor.ToString(MudColorOutputFormats.Hex)
+            });
+            Snackbar.Add("Tag aangemaakt!", Severity.Success);
+        }
+
+        _showFormDialog = false;
+        await LoadData();
+    }
+
+    private async Task ConfirmDelete(TagDto tag)
+    {
+        var parameters = new DialogParameters<MessageBoxDialog>
+        {
+            { x => x.ContentText, $"Weet je zeker dat je de tag '{tag.Name}' wilt verwijderen?" },
+            { x => x.YesText, "Verwijderen" },
+            { x => x.CancelText, "Annuleren" }
+        };
+
+        var dialog = await DialogService.ShowAsync<MessageBoxDialog>("Verwijderen", parameters);
+        var result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await Mediator.Send(new DeleteTagCommand { Id = tag.Id });
+            Snackbar.Add("Tag verwijderd!", Severity.Success);
+            await LoadData();
+        }
+    }
+}

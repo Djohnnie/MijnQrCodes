@@ -15,6 +15,7 @@ public class ShortUrlRepository : IShortUrlRepository
     public async Task<List<ShortUrl>> GetAll()
     {
         return await _dbContext.ShortUrls
+            .Include(x => x.ShortUrlTags).ThenInclude(x => x.Tag)
             .AsNoTracking()
             .OrderByDescending(x => x.CreatedAt)
             .ToListAsync();
@@ -23,6 +24,7 @@ public class ShortUrlRepository : IShortUrlRepository
     public async Task<ShortUrl?> GetById(Guid id)
     {
         return await _dbContext.ShortUrls
+            .Include(x => x.ShortUrlTags).ThenInclude(x => x.Tag)
             .AsNoTracking()
             .SingleOrDefaultAsync(x => x.Id == id);
     }
@@ -48,7 +50,9 @@ public class ShortUrlRepository : IShortUrlRepository
 
     public async Task<ShortUrl?> Update(ShortUrl shortUrl)
     {
-        var existing = await _dbContext.ShortUrls.SingleOrDefaultAsync(x => x.Id == shortUrl.Id);
+        var existing = await _dbContext.ShortUrls
+            .Include(x => x.ShortUrlTags)
+            .SingleOrDefaultAsync(x => x.Id == shortUrl.Id);
         if (existing is null) return null;
 
         existing.Title = shortUrl.Title;
@@ -77,5 +81,23 @@ public class ShortUrlRepository : IShortUrlRepository
         return await _dbContext.ShortUrls
             .AsNoTracking()
             .AnyAsync(x => x.ShortCode == shortCode);
+    }
+
+    public async Task SetTags(Guid shortUrlId, List<Guid> tagIds)
+    {
+        await _dbContext.ShortUrlTags
+            .Where(x => x.ShortUrlId == shortUrlId)
+            .ExecuteDeleteAsync();
+
+        foreach (var tagId in tagIds)
+        {
+            _dbContext.ShortUrlTags.Add(new ShortUrlTag
+            {
+                ShortUrlId = shortUrlId,
+                TagId = tagId
+            });
+        }
+
+        await _dbContext.SaveChangesAsync();
     }
 }
