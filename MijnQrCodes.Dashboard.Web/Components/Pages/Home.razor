@@ -155,10 +155,10 @@
                 </MudStack>
                 <MudStack Spacing="3">
                     <MudTextField @bind-Value="_formTitle" Label="Titel" Required
-                                  Variant="Variant.Outlined" />
+                                  Variant="Variant.Outlined" Immediate />
                     <MudTextField @bind-Value="_formUrl" Label="Doel URL" Required
                                   Variant="Variant.Outlined" InputType="InputType.Url"
-                                  Placeholder="https://voorbeeld.be" />
+                                  Placeholder="https://voorbeeld.be" Immediate />
                     <MudText Typo="Typo.subtitle2" Style="font-weight: 600;">QR Code kleuren</MudText>
                     <MudGrid Spacing="2">
                         <MudItem xs="4">
