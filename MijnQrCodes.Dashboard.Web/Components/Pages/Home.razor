@@ -248,13 +248,15 @@
                     {
                         <MudFileUpload T="IBrowserFile" Accept=".png,.svg" FilesChanged="OnCenterImageSelected"
                                        MaximumFileCount="1">
-                            <ActivatorContent>
+                            <CustomContent>
                                 <MudButton Variant="Variant.Outlined" Color="Color.Primary"
                                            StartIcon="@Icons.Material.Outlined.Image"
-                                           Style="text-transform: none;">
+                                           Style="text-transform: none;"
+                                           OnClick="@context.OpenFilePickerAsync">
                                     Afbeelding selecteren
                                 </MudButton>
-                            </ActivatorContent>
+                            </CustomContent>
+                            <SelectedTemplate Context="fileName"></SelectedTemplate>
                         </MudFileUpload>
                     }
                 </MudStack>
