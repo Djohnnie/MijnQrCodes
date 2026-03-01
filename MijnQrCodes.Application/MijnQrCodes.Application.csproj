@@ -16,6 +16,7 @@
 		<PackageReference Include="MediatR" Version="14.0.0" />
 		<PackageReference Include="QRCoder" Version="1.7.0" />
 		<PackageReference Include="SkiaSharp" Version="3.119.2" />
+		<PackageReference Include="SkiaSharp.Svg" Version="1.60.0" />
 	</ItemGroup>
 
 </Project>

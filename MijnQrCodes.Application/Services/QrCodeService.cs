@@ -1,6 +1,8 @@
 using System.Collections;
+using System.Text;
 using QRCoder;
 using SkiaSharp;
+using SKSvg = SkiaSharp.Extended.Svg.SKSvg;
 
 namespace MijnQrCodes.Application.Services;
 
@@ -131,9 +133,6 @@ public class QrCodeService : IQrCodeService
     private static void DrawCenterImage(SKCanvas canvas, byte[] imageData, int size,
         int moduleCount, int totalModules, float moduleSize, SKColor bgColor)
     {
-        using var bitmap = SKBitmap.Decode(imageData);
-        if (bitmap == null) return;
-
         var centerModules = (int)Math.Ceiling(moduleCount * 0.25);
         if (centerModules % 2 != moduleCount % 2) centerModules++;
         var centerPixelSize = centerModules * moduleSize;
@@ -156,7 +155,40 @@ public class QrCodeService : IQrCodeService
         canvas.DrawRoundRect(new SKRoundRect(bgRect, bgRadius), bgPaint);
 
         var destRect = new SKRect(centerX, centerY, centerX + centerPixelSize, centerY + centerPixelSize);
-        using var imgPaint = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.High };
-        canvas.DrawBitmap(bitmap, destRect, imgPaint);
+
+        if (IsSvg(imageData))
+        {
+            var svg = new SKSvg();
+            using var stream = new MemoryStream(imageData);
+            svg.Load(stream);
+            if (svg.Picture != null)
+            {
+                var svgBounds = svg.Picture.CullRect;
+                var scaleX = centerPixelSize / svgBounds.Width;
+                var scaleY = centerPixelSize / svgBounds.Height;
+                var scale = Math.Min(scaleX, scaleY);
+
+                canvas.Save();
+                canvas.Translate(centerX + (centerPixelSize - svgBounds.Width * scale) / 2f,
+                                 centerY + (centerPixelSize - svgBounds.Height * scale) / 2f);
+                canvas.Scale(scale);
+                canvas.DrawPicture(svg.Picture);
+                canvas.Restore();
+            }
+        }
+        else
+        {
+            using var bitmap = SKBitmap.Decode(imageData);
+            if (bitmap == null) return;
+            using var imgPaint = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.High };
+            canvas.DrawBitmap(bitmap, destRect, imgPaint);
+        }
+    }
+
+    private static bool IsSvg(byte[] data)
+    {
+        if (data.Length < 5) return false;
+        var header = Encoding.UTF8.GetString(data, 0, Math.Min(data.Length, 256));
+        return header.Contains("<svg", StringComparison.OrdinalIgnoreCase);
     }
 }
