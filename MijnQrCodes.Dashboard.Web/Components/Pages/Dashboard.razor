@@ -3,6 +3,7 @@
 @using MijnQrCodes.Contracts.Dashboard
 @attribute [Microsoft.AspNetCore.Authorization.Authorize]
 @inject IMediator Mediator
+@inject NavigationManager NavigationManager
 
 <PageTitle>Dashboard - MijnQrCodes</PageTitle>
 
@@ -98,7 +99,10 @@
                                     </MudAvatar>
                                     <MudStack Spacing="0" Class="ml-3 flex-grow-1" Style="min-width: 0;">
                                         <MudText Typo="Typo.body2" Style="font-weight: 600;">@link.Title</MudText>
-                                        <MudText Typo="Typo.caption" Color="Color.Primary">/@link.ShortCode</MudText>
+                                        <MudLink Href="@($"{NavigationManager.BaseUri}r/{link.ShortCode}")" Target="_blank"
+                                                 Typo="Typo.caption">
+                                            /@link.ShortCode
+                                        </MudLink>
                                     </MudStack>
                                     <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Text"
                                              Style="font-weight: 700;">
