@@ -12,7 +12,8 @@ public class QrCodeService : IQrCodeService
 
     public byte[] GenerateQrCode(string content, int size = 1024,
         string backgroundColor = "#FFFFFF", string foregroundColor = "#212121",
-        string finderPatternColor = "#212121", byte[]? centerImageData = null)
+        string finderPatternColor = "#212121", byte[]? centerImageData = null,
+        string? centerImageColor = null)
     {
         var bgColor = SKColor.Parse(backgroundColor);
         var fgColor = SKColor.Parse(foregroundColor);
@@ -64,7 +65,7 @@ public class QrCodeService : IQrCodeService
 
         if (centerImageData is { Length: > 0 })
         {
-            DrawCenterImage(canvas, centerImageData, size, moduleCount, totalModules, moduleSize, bgColor);
+            DrawCenterImage(canvas, centerImageData, size, moduleCount, totalModules, moduleSize, bgColor, centerImageColor);
         }
 
         using var image = surface.Snapshot();
@@ -131,7 +132,7 @@ public class QrCodeService : IQrCodeService
     }
 
     private static void DrawCenterImage(SKCanvas canvas, byte[] imageData, int size,
-        int moduleCount, int totalModules, float moduleSize, SKColor bgColor)
+        int moduleCount, int totalModules, float moduleSize, SKColor bgColor, string? colorOverride = null)
     {
         var centerModules = (int)Math.Ceiling(moduleCount * 0.25);
         if (centerModules % 2 != moduleCount % 2) centerModules++;
@@ -172,7 +173,22 @@ public class QrCodeService : IQrCodeService
                 canvas.Translate(centerX + (centerPixelSize - svgBounds.Width * scale) / 2f,
                                  centerY + (centerPixelSize - svgBounds.Height * scale) / 2f);
                 canvas.Scale(scale);
-                canvas.DrawPicture(svg.Picture);
+
+                if (colorOverride is not null)
+                {
+                    using var colorPaint = new SKPaint
+                    {
+                        ColorFilter = SKColorFilter.CreateBlendMode(
+                            SKColor.Parse(colorOverride), SKBlendMode.SrcIn),
+                        IsAntialias = true
+                    };
+                    canvas.DrawPicture(svg.Picture, colorPaint);
+                }
+                else
+                {
+                    canvas.DrawPicture(svg.Picture);
+                }
+
                 canvas.Restore();
             }
         }

@@ -64,6 +64,7 @@ public class ShortUrlRepository : IShortUrlRepository
         {
             existing.CenterImageData = shortUrl.CenterImageData;
             existing.CenterImageContentType = shortUrl.CenterImageContentType;
+            existing.CenterImageColor = shortUrl.CenterImageColor;
         }
         existing.UpdatedAt = DateTime.UtcNow;
 

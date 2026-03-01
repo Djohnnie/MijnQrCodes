@@ -39,6 +39,7 @@ public class MijnQrCodesDbContext : DbContext
             entity.Property(e => e.BackgroundColor).HasMaxLength(10).HasDefaultValue("#FFFFFF");
             entity.Property(e => e.ForegroundColor).HasMaxLength(10).HasDefaultValue("#212121");
             entity.Property(e => e.FinderPatternColor).HasMaxLength(10).HasDefaultValue("#212121");
+            entity.Property(e => e.CenterImageColor).HasMaxLength(10);
             entity.Property(e => e.CenterImageContentType).HasMaxLength(50);
         });
 

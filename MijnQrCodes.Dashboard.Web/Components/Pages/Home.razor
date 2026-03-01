@@ -259,6 +259,16 @@
                             <SelectedTemplate Context="fileName"></SelectedTemplate>
                         </MudFileUpload>
                     }
+                    @if (_formCenterImageData is not null && _formCenterImageContentType == "image/svg+xml")
+                    {
+                        <MudGrid Spacing="2">
+                            <MudItem xs="4">
+                                <MudText Typo="Typo.caption" Color="Color.Tertiary" Class="mb-1">Afbeeldingskleur</MudText>
+                                <MudColorPicker @bind-Value="_formImageColor" ColorPickerMode="ColorPickerMode.HEX"
+                                                ShowAlpha="false" Variant="Variant.Outlined" />
+                            </MudItem>
+                        </MudGrid>
+                    }
                 </MudStack>
                 <MudStack Row Justify="Justify.FlexEnd" Class="mt-5" Spacing="2">
                     <MudButton OnClick="CloseFormDialog" Style="text-transform: none;">Annuleren</MudButton>
@@ -368,6 +378,7 @@
     private IReadOnlyCollection<Guid> _formSelectedTags = [];
     private byte[]? _formCenterImageData;
     private string? _formCenterImageContentType;
+    private MudColor _formImageColor = new("#212121");
     private bool _formRemoveCenterImage;
 
     private List<ShortUrlDto> _filteredUrls =>
@@ -399,6 +410,7 @@
         _formSelectedTags = [];
         _formCenterImageData = null;
         _formCenterImageContentType = null;
+        _formImageColor = new("#212121");
         _formRemoveCenterImage = false;
         _showFormDialog = true;
     }
@@ -413,6 +425,7 @@
         _formForegroundColor = new(item.ForegroundColor);
         _formFinderColor = new(item.FinderPatternColor);
         _formSelectedTags = item.Tags.Select(t => t.Id).ToList();
+        _formImageColor = new(item.CenterImageColor ?? "#212121");
         _formRemoveCenterImage = false;
 
         if (item.HasCenterImage)
@@ -449,6 +462,7 @@
                 TagIds = _formSelectedTags.ToList(),
                 CenterImageData = _formCenterImageData,
                 CenterImageContentType = _formCenterImageContentType,
+                CenterImageColor = _formCenterImageContentType == "image/svg+xml" ? _formImageColor.ToString(MudColorOutputFormats.Hex) : null,
                 RemoveCenterImage = _formRemoveCenterImage
             });
             Snackbar.Add("URL bijgewerkt!", Severity.Success);
@@ -464,7 +478,8 @@
                 FinderPatternColor = _formFinderColor.ToString(MudColorOutputFormats.Hex),
                 TagIds = _formSelectedTags.ToList(),
                 CenterImageData = _formCenterImageData,
-                CenterImageContentType = _formCenterImageContentType
+                CenterImageContentType = _formCenterImageContentType,
+                CenterImageColor = _formCenterImageContentType == "image/svg+xml" ? _formImageColor.ToString(MudColorOutputFormats.Hex) : null
             });
             Snackbar.Add("URL aangemaakt!", Severity.Success);
         }
@@ -512,7 +527,8 @@
             BackgroundColor = item.BackgroundColor,
             ForegroundColor = item.ForegroundColor,
             FinderPatternColor = item.FinderPatternColor,
-            CenterImageData = centerImage
+            CenterImageData = centerImage,
+            CenterImageColor = item.CenterImageColor
         });
         _qrImageData = response.ImageData;
         StateHasChanged();

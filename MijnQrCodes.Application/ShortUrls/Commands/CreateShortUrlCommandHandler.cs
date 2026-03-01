@@ -27,7 +27,8 @@ public class CreateShortUrlCommandHandler : IRequestHandler<CreateShortUrlComman
             ForegroundColor = request.ForegroundColor,
             FinderPatternColor = request.FinderPatternColor,
             CenterImageData = request.CenterImageData,
-            CenterImageContentType = request.CenterImageContentType
+            CenterImageContentType = request.CenterImageContentType,
+            CenterImageColor = request.CenterImageColor
         };
 
         var created = await _repository.Create(entity);
@@ -48,6 +49,7 @@ public class CreateShortUrlCommandHandler : IRequestHandler<CreateShortUrlComman
             ForegroundColor = created.ForegroundColor,
             FinderPatternColor = created.FinderPatternColor,
             HasCenterImage = created.CenterImageData is { Length: > 0 },
+            CenterImageColor = created.CenterImageColor,
             Tags = created.ShortUrlTags.Select(t => new ShortUrlTagDto
             {
                 Id = t.Tag.Id,

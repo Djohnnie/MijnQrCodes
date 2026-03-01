@@ -16,6 +16,7 @@ public class ShortUrlDto
     public string FinderPatternColor { get; set; } = "#212121";
     public List<ShortUrlTagDto> Tags { get; set; } = [];
     public bool HasCenterImage { get; set; }
+    public string? CenterImageColor { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 }

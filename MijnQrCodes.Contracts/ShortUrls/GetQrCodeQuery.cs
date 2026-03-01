@@ -9,4 +9,5 @@ public class GetQrCodeQuery : IRequest<GetQrCodeResponse>
     public string ForegroundColor { get; set; } = "#212121";
     public string FinderPatternColor { get; set; } = "#212121";
     public byte[]? CenterImageData { get; set; }
+    public string? CenterImageColor { get; set; }
 }
