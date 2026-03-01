@@ -10,7 +10,7 @@ public class QrCodeService : IQrCodeService
 
     public byte[] GenerateQrCode(string content, int size = 1024,
         string backgroundColor = "#FFFFFF", string foregroundColor = "#212121",
-        string finderPatternColor = "#212121")
+        string finderPatternColor = "#212121", byte[]? centerImageData = null)
     {
         var bgColor = SKColor.Parse(backgroundColor);
         var fgColor = SKColor.Parse(foregroundColor);
@@ -59,6 +59,11 @@ public class QrCodeService : IQrCodeService
         DrawFinderPattern(canvas, QuietZoneModules * moduleSize, QuietZoneModules * moduleSize, moduleSize, fpColor, bgColor);
         DrawFinderPattern(canvas, (moduleCount - 7 + QuietZoneModules) * moduleSize, QuietZoneModules * moduleSize, moduleSize, fpColor, bgColor);
         DrawFinderPattern(canvas, QuietZoneModules * moduleSize, (moduleCount - 7 + QuietZoneModules) * moduleSize, moduleSize, fpColor, bgColor);
+
+        if (centerImageData is { Length: > 0 })
+        {
+            DrawCenterImage(canvas, centerImageData, size, moduleCount, totalModules, moduleSize, bgColor);
+        }
 
         using var image = surface.Snapshot();
         using var data = image.Encode(SKEncodedImageFormat.Png, 100);
@@ -121,5 +126,37 @@ public class QrCodeService : IQrCodeService
 
         var io = 2 * moduleSize;
         canvas.DrawRoundRect(new SKRoundRect(new SKRect(x + io, y + io, x + io + innerSize, y + io + innerSize), innerRadius), fpPaint);
+    }
+
+    private static void DrawCenterImage(SKCanvas canvas, byte[] imageData, int size,
+        int moduleCount, int totalModules, float moduleSize, SKColor bgColor)
+    {
+        using var bitmap = SKBitmap.Decode(imageData);
+        if (bitmap == null) return;
+
+        var centerModules = (int)Math.Ceiling(moduleCount * 0.25);
+        if (centerModules % 2 != moduleCount % 2) centerModules++;
+        var centerPixelSize = centerModules * moduleSize;
+
+        var centerX = (size - centerPixelSize) / 2f;
+        var centerY = (size - centerPixelSize) / 2f;
+        var padding = moduleSize;
+        var bgRect = new SKRect(
+            centerX - padding, centerY - padding,
+            centerX + centerPixelSize + padding, centerY + centerPixelSize + padding);
+
+        using var bgPaint = new SKPaint
+        {
+            Color = bgColor,
+            IsAntialias = true,
+            Style = SKPaintStyle.Fill,
+            BlendMode = SKBlendMode.Src
+        };
+        var bgRadius = moduleSize * 1.2f;
+        canvas.DrawRoundRect(new SKRoundRect(bgRect, bgRadius), bgPaint);
+
+        var destRect = new SKRect(centerX, centerY, centerX + centerPixelSize, centerY + centerPixelSize);
+        using var imgPaint = new SKPaint { IsAntialias = true, FilterQuality = SKFilterQuality.High };
+        canvas.DrawBitmap(bitmap, destRect, imgPaint);
     }
 }

@@ -28,6 +28,7 @@ public class GetShortUrlsQueryHandler : IRequestHandler<GetShortUrlsQuery, GetSh
                 BackgroundColor = x.BackgroundColor,
                 ForegroundColor = x.ForegroundColor,
                 FinderPatternColor = x.FinderPatternColor,
+                HasCenterImage = x.CenterImageData is { Length: > 0 },
                 Tags = x.ShortUrlTags.Select(t => new ShortUrlTagDto
                 {
                     Id = t.Tag.Id,

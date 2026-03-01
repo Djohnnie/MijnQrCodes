@@ -10,6 +10,8 @@ public class ShortUrl
     public string BackgroundColor { get; set; } = "#FFFFFF";
     public string ForegroundColor { get; set; } = "#212121";
     public string FinderPatternColor { get; set; } = "#212121";
+    public byte[]? CenterImageData { get; set; }
+    public string? CenterImageContentType { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
 

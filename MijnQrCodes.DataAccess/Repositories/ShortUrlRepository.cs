@@ -60,6 +60,11 @@ public class ShortUrlRepository : IShortUrlRepository
         existing.BackgroundColor = shortUrl.BackgroundColor;
         existing.ForegroundColor = shortUrl.ForegroundColor;
         existing.FinderPatternColor = shortUrl.FinderPatternColor;
+        if (shortUrl.CenterImageData is not null || shortUrl.CenterImageContentType is null)
+        {
+            existing.CenterImageData = shortUrl.CenterImageData;
+            existing.CenterImageContentType = shortUrl.CenterImageContentType;
+        }
         existing.UpdatedAt = DateTime.UtcNow;
 
         await _dbContext.SaveChangesAsync();
@@ -99,5 +104,14 @@ public class ShortUrlRepository : IShortUrlRepository
         }
 
         await _dbContext.SaveChangesAsync();
+    }
+
+    public async Task<byte[]?> GetCenterImageData(Guid id)
+    {
+        return await _dbContext.ShortUrls
+            .AsNoTracking()
+            .Where(x => x.Id == id)
+            .Select(x => x.CenterImageData)
+            .SingleOrDefaultAsync();
     }
 }

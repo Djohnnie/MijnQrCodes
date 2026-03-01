@@ -18,7 +18,8 @@ public class GetQrCodeQueryHandler : IRequestHandler<GetQrCodeQuery, GetQrCodeRe
         var imageData = _qrCodeService.GenerateQrCode(request.Url,
             backgroundColor: request.BackgroundColor,
             foregroundColor: request.ForegroundColor,
-            finderPatternColor: request.FinderPatternColor);
+            finderPatternColor: request.FinderPatternColor,
+            centerImageData: request.CenterImageData);
 
         return Task.FromResult(new GetQrCodeResponse
         {

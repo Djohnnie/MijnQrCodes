@@ -10,4 +10,6 @@ public class CreateShortUrlCommand : IRequest<ShortUrlDto>
     public string ForegroundColor { get; set; } = "#212121";
     public string FinderPatternColor { get; set; } = "#212121";
     public List<Guid> TagIds { get; set; } = [];
+    public byte[]? CenterImageData { get; set; }
+    public string? CenterImageContentType { get; set; }
 }

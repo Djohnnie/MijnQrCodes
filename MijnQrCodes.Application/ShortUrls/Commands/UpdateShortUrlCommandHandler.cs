@@ -23,7 +23,9 @@ public class UpdateShortUrlCommandHandler : IRequestHandler<UpdateShortUrlComman
             OriginalUrl = request.OriginalUrl,
             BackgroundColor = request.BackgroundColor,
             ForegroundColor = request.ForegroundColor,
-            FinderPatternColor = request.FinderPatternColor
+            FinderPatternColor = request.FinderPatternColor,
+            CenterImageData = request.RemoveCenterImage ? null : request.CenterImageData,
+            CenterImageContentType = request.RemoveCenterImage ? null : request.CenterImageContentType
         };
 
         var updated = await _repository.Update(entity);
@@ -41,6 +43,7 @@ public class UpdateShortUrlCommandHandler : IRequestHandler<UpdateShortUrlComman
             BackgroundColor = updated.BackgroundColor,
             ForegroundColor = updated.ForegroundColor,
             FinderPatternColor = updated.FinderPatternColor,
+            HasCenterImage = updated.CenterImageData is { Length: > 0 },
             Tags = updated.ShortUrlTags.Select(t => new ShortUrlTagDto
             {
                 Id = t.Tag.Id,
