@@ -56,6 +56,16 @@ public class QrCodeService : IQrCodeService
 
                 DrawRoundedModule(canvas, x, y, moduleSize, cornerRadius,
                     hasTop, hasRight, hasBottom, hasLeft, fgPaint);
+
+                // Inner corners for diagonal neighbors
+                if (!hasTop && !hasLeft && IsDataModule(moduleData, row - 1, col - 1, moduleCount))
+                    DrawInnerCorner(canvas, x, y, cornerRadius, 180f, fgPaint);
+                if (!hasTop && !hasRight && IsDataModule(moduleData, row - 1, col + 1, moduleCount))
+                    DrawInnerCorner(canvas, x + moduleSize, y, cornerRadius, 270f, fgPaint);
+                if (!hasBottom && !hasRight && IsDataModule(moduleData, row + 1, col + 1, moduleCount))
+                    DrawInnerCorner(canvas, x + moduleSize, y + moduleSize, cornerRadius, 0f, fgPaint);
+                if (!hasBottom && !hasLeft && IsDataModule(moduleData, row + 1, col - 1, moduleCount))
+                    DrawInnerCorner(canvas, x, y + moduleSize, cornerRadius, 90f, fgPaint);
             }
         }
 
@@ -107,6 +117,17 @@ public class QrCodeService : IQrCodeService
         ]);
 
         canvas.DrawRoundRect(roundRect, paint);
+    }
+
+    private static void DrawInnerCorner(SKCanvas canvas, float cx, float cy, float radius,
+        float startAngle, SKPaint paint)
+    {
+        using var path = new SKPath();
+        path.MoveTo(cx, cy);
+        var oval = new SKRect(cx - radius, cy - radius, cx + radius, cy + radius);
+        path.ArcTo(oval, startAngle, 90f, false);
+        path.Close();
+        canvas.DrawPath(path, paint);
     }
 
     private static void DrawFinderPattern(SKCanvas canvas, float x, float y, float moduleSize,
