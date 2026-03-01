@@ -2,7 +2,7 @@ using System.Collections;
 using System.Text;
 using QRCoder;
 using SkiaSharp;
-using SKSvg = SkiaSharp.Extended.Svg.SKSvg;
+using Svg.Skia;
 
 namespace MijnQrCodes.Application.Services;
 
@@ -158,7 +158,7 @@ public class QrCodeService : IQrCodeService
 
         if (IsSvg(imageData))
         {
-            var svg = new SKSvg();
+            using var svg = new SKSvg();
             using var stream = new MemoryStream(imageData);
             svg.Load(stream);
             if (svg.Picture != null)
