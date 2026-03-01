@@ -12,5 +12,5 @@ public interface IShortUrlRepository
     Task<bool> Delete(Guid id);
     Task<bool> ShortCodeExists(string shortCode);
     Task SetTags(Guid shortUrlId, List<Guid> tagIds);
-    Task<byte[]?> GetCenterImageData(Guid id);
+    Task<(byte[]? Data, string? ContentType)> GetCenterImageData(Guid id);
 }

@@ -4,7 +4,7 @@ using MijnQrCodes.DataAccess.Repositories;
 
 namespace MijnQrCodes.Application.ShortUrls.Queries;
 
-public class GetCenterImageQueryHandler : IRequestHandler<GetCenterImageQuery, byte[]?>
+public class GetCenterImageQueryHandler : IRequestHandler<GetCenterImageQuery, GetCenterImageResponse?>
 {
     private readonly IShortUrlRepository _repository;
 
@@ -13,8 +13,15 @@ public class GetCenterImageQueryHandler : IRequestHandler<GetCenterImageQuery, b
         _repository = repository;
     }
 
-    public async Task<byte[]?> Handle(GetCenterImageQuery request, CancellationToken cancellationToken)
+    public async Task<GetCenterImageResponse?> Handle(GetCenterImageQuery request, CancellationToken cancellationToken)
     {
-        return await _repository.GetCenterImageData(request.ShortUrlId);
+        var (data, contentType) = await _repository.GetCenterImageData(request.ShortUrlId);
+        if (data is null) return null;
+
+        return new GetCenterImageResponse
+        {
+            ImageData = data,
+            ContentType = contentType ?? "image/png"
+        };
     }
 }

@@ -114,12 +114,13 @@ public class ShortUrlRepository : IShortUrlRepository
         await _dbContext.SaveChangesAsync();
     }
 
-    public async Task<byte[]?> GetCenterImageData(Guid id)
+    public async Task<(byte[]? Data, string? ContentType)> GetCenterImageData(Guid id)
     {
-        return await _dbContext.ShortUrls
+        var result = await _dbContext.ShortUrls
             .AsNoTracking()
             .Where(x => x.Id == id)
-            .Select(x => x.CenterImageData)
+            .Select(x => new { x.CenterImageData, x.CenterImageContentType })
             .SingleOrDefaultAsync();
+        return (result?.CenterImageData, result?.CenterImageContentType);
     }
 }

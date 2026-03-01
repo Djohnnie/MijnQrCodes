@@ -406,8 +406,9 @@
 
         if (item.HasCenterImage)
         {
-            _formCenterImageData = await Mediator.Send(new GetCenterImageQuery { ShortUrlId = item.Id });
-            _formCenterImageContentType = "image/png";
+            var centerImage = await Mediator.Send(new GetCenterImageQuery { ShortUrlId = item.Id });
+            _formCenterImageData = centerImage?.ImageData;
+            _formCenterImageContentType = centerImage?.ContentType ?? "image/png";
         }
         else
         {
@@ -490,7 +491,8 @@
         byte[]? centerImage = null;
         if (item.HasCenterImage)
         {
-            centerImage = await Mediator.Send(new GetCenterImageQuery { ShortUrlId = item.Id });
+            var ci = await Mediator.Send(new GetCenterImageQuery { ShortUrlId = item.Id });
+            centerImage = ci?.ImageData;
         }
 
         var response = await Mediator.Send(new GetQrCodeQuery
@@ -539,7 +541,9 @@
         using var stream = new MemoryStream();
         await file.OpenReadStream(maxAllowedSize: 1024 * 1024).CopyToAsync(stream);
         _formCenterImageData = stream.ToArray();
-        _formCenterImageContentType = file.ContentType;
+        _formCenterImageContentType = file.Name.EndsWith(".svg", StringComparison.OrdinalIgnoreCase)
+            ? "image/svg+xml"
+            : "image/png";
         _formRemoveCenterImage = false;
     }
 
