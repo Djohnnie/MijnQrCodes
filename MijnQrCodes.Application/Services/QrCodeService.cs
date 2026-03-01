@@ -59,13 +59,13 @@ public class QrCodeService : IQrCodeService
 
                 // Inner corners for diagonal neighbors
                 if (!hasTop && !hasLeft && IsDataModule(moduleData, row - 1, col - 1, moduleCount))
-                    DrawInnerCorner(canvas, x, y, cornerRadius, -1, -1, 90f, fgPaint);
+                    DrawInnerCorner(canvas, x, y, cornerRadius, 180f, fgPaint);
                 if (!hasTop && !hasRight && IsDataModule(moduleData, row - 1, col + 1, moduleCount))
-                    DrawInnerCorner(canvas, x + moduleSize, y, cornerRadius, 1, -1, 180f, fgPaint);
+                    DrawInnerCorner(canvas, x + moduleSize, y, cornerRadius, 270f, fgPaint);
                 if (!hasBottom && !hasRight && IsDataModule(moduleData, row + 1, col + 1, moduleCount))
-                    DrawInnerCorner(canvas, x + moduleSize, y + moduleSize, cornerRadius, 1, 1, 270f, fgPaint);
+                    DrawInnerCorner(canvas, x + moduleSize, y + moduleSize, cornerRadius, 0f, fgPaint);
                 if (!hasBottom && !hasLeft && IsDataModule(moduleData, row + 1, col - 1, moduleCount))
-                    DrawInnerCorner(canvas, x, y + moduleSize, cornerRadius, -1, 1, 0f, fgPaint);
+                    DrawInnerCorner(canvas, x, y + moduleSize, cornerRadius, 90f, fgPaint);
             }
         }
 
@@ -120,14 +120,12 @@ public class QrCodeService : IQrCodeService
     }
 
     private static void DrawInnerCorner(SKCanvas canvas, float cx, float cy, float radius,
-        float dirX, float dirY, float startAngle, SKPaint paint)
+        float startAngle, SKPaint paint)
     {
         using var path = new SKPath();
         path.MoveTo(cx, cy);
-        var arcCx = cx + dirX * radius;
-        var arcCy = cy + dirY * radius;
-        var oval = new SKRect(arcCx - radius, arcCy - radius, arcCx + radius, arcCy + radius);
-        path.ArcTo(oval, startAngle, -90f, false);
+        var oval = new SKRect(cx - radius, cy - radius, cx + radius, cy + radius);
+        path.ArcTo(oval, startAngle, 90f, false);
         path.Close();
         canvas.DrawPath(path, paint);
     }
