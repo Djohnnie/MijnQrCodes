@@ -194,18 +194,27 @@
                     <MudGrid Spacing="2">
                         <MudItem xs="4">
                             <MudText Typo="Typo.caption" Color="Color.Tertiary" Class="mb-1">Achtergrond</MudText>
-                            <MudColorPicker @bind-Value="_formBackgroundColor" ColorPickerMode="ColorPickerMode.HEX"
-                                            ShowAlpha="false" Variant="Variant.Outlined" />
+                            <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                <div style="width: 28px; height: 28px; border-radius: 6px; background: @(_formBackgroundColor.ToString(MudColorOutputFormats.Hex)); border: 1px solid var(--mud-palette-lines-default); flex-shrink: 0;"></div>
+                                <MudColorPicker @bind-Value="_formBackgroundColor" ColorPickerMode="ColorPickerMode.HEX"
+                                                ShowAlpha="false" Variant="Variant.Outlined" Style="flex-grow: 1;" />
+                            </MudStack>
                         </MudItem>
                         <MudItem xs="4">
                             <MudText Typo="Typo.caption" Color="Color.Tertiary" Class="mb-1">Voorgrond</MudText>
-                            <MudColorPicker @bind-Value="_formForegroundColor" ColorPickerMode="ColorPickerMode.HEX"
-                                            ShowAlpha="false" Variant="Variant.Outlined" />
+                            <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                <div style="width: 28px; height: 28px; border-radius: 6px; background: @(_formForegroundColor.ToString(MudColorOutputFormats.Hex)); border: 1px solid var(--mud-palette-lines-default); flex-shrink: 0;"></div>
+                                <MudColorPicker @bind-Value="_formForegroundColor" ColorPickerMode="ColorPickerMode.HEX"
+                                                ShowAlpha="false" Variant="Variant.Outlined" Style="flex-grow: 1;" />
+                            </MudStack>
                         </MudItem>
                         <MudItem xs="4">
                             <MudText Typo="Typo.caption" Color="Color.Tertiary" Class="mb-1">Finder</MudText>
-                            <MudColorPicker @bind-Value="_formFinderColor" ColorPickerMode="ColorPickerMode.HEX"
-                                            ShowAlpha="false" Variant="Variant.Outlined" />
+                            <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                <div style="width: 28px; height: 28px; border-radius: 6px; background: @(_formFinderColor.ToString(MudColorOutputFormats.Hex)); border: 1px solid var(--mud-palette-lines-default); flex-shrink: 0;"></div>
+                                <MudColorPicker @bind-Value="_formFinderColor" ColorPickerMode="ColorPickerMode.HEX"
+                                                ShowAlpha="false" Variant="Variant.Outlined" Style="flex-grow: 1;" />
+                            </MudStack>
                         </MudItem>
                     </MudGrid>
                     @if (_allTags.Count > 0)
@@ -265,8 +274,11 @@
                         <MudGrid Spacing="2">
                             <MudItem xs="4">
                                 <MudText Typo="Typo.caption" Color="Color.Tertiary" Class="mb-1">Afbeeldingskleur</MudText>
-                                <MudColorPicker @bind-Value="_formImageColor" ColorPickerMode="ColorPickerMode.HEX"
-                                                ShowAlpha="false" Variant="Variant.Outlined" />
+                                <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                    <div style="width: 28px; height: 28px; border-radius: 6px; background: @(_formImageColor.ToString(MudColorOutputFormats.Hex)); border: 1px solid var(--mud-palette-lines-default); flex-shrink: 0;"></div>
+                                    <MudColorPicker @bind-Value="_formImageColor" ColorPickerMode="ColorPickerMode.HEX"
+                                                    ShowAlpha="false" Variant="Variant.Outlined" Style="flex-grow: 1;" />
+                                </MudStack>
                             </MudItem>
                         </MudGrid>
                     }
