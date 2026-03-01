@@ -90,6 +90,14 @@ public class ShortUrlRepository : IShortUrlRepository
 
     public async Task SetTags(Guid shortUrlId, List<Guid> tagIds)
     {
+        var tracked = _dbContext.ChangeTracker.Entries<ShortUrlTag>()
+            .Where(e => e.Entity.ShortUrlId == shortUrlId)
+            .ToList();
+        foreach (var entry in tracked)
+        {
+            entry.State = EntityState.Detached;
+        }
+
         await _dbContext.ShortUrlTags
             .Where(x => x.ShortUrlId == shortUrlId)
             .ExecuteDeleteAsync();
