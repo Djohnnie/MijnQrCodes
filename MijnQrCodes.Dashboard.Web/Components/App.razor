@@ -20,6 +20,14 @@
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_content/Blazor-ApexCharts/js/blazor-apexcharts.js"></script>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script>
+        window.downloadFile = (filename, contentType, base64Data) => {
+            const link = document.createElement('a');
+            link.href = `data:${contentType};base64,${base64Data}`;
+            link.download = filename;
+            link.click();
+        };
+    </script>
 </body>
 
 </html>

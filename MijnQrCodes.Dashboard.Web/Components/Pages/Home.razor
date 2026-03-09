@@ -10,6 +10,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
+@inject IJSRuntime JSRuntime
 
 <PageTitle>URL's - MijnQrCodes</PageTitle>
 
@@ -151,8 +152,15 @@
             <div class="pa-5">
                 <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
                     <MudText Typo="Typo.h6">@_selectedItem?.Title</MudText>
-                    <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Small"
-                                   OnClick="CloseQrDialog" />
+                    <MudStack Row Spacing="0">
+                        <MudTooltip Text="Downloaden">
+                            <MudIconButton Icon="@Icons.Material.Outlined.Download" Size="Size.Small"
+                                           Color="Color.Primary" OnClick="DownloadQrCode"
+                                           Disabled="@(_qrImageData is null)" />
+                        </MudTooltip>
+                        <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Small"
+                                       OnClick="CloseQrDialog" />
+                    </MudStack>
                 </MudStack>
                 <div style="background: repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 50% / 16px 16px; border-radius: 12px; padding: 1rem; display: flex; justify-content: center;">
                     @if (_qrImageData is not null)
@@ -564,6 +572,12 @@
     {
         _showQrDialog = false;
         _qrImageData = null;
+    }
+
+    private async Task DownloadQrCode()
+    {
+        if (_qrImageData is null || _selectedItem is null) return;
+        await JSRuntime.InvokeVoidAsync("downloadFile", $"{_selectedItem.Title}.png", "image/png", Convert.ToBase64String(_qrImageData));
     }
 
     private async Task ShowStats(ShortUrlDto item)
