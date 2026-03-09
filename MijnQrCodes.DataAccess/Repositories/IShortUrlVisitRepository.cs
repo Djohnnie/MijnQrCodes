@@ -8,4 +8,5 @@ public interface IShortUrlVisitRepository
     Task<List<ShortUrlVisit>> GetVisits(Guid shortUrlId);
     Task<int> GetTotalVisits(Guid shortUrlId);
     Task<List<ShortUrlVisit>> GetAllVisits();
+    Task ClearVisits(Guid shortUrlId);
 }

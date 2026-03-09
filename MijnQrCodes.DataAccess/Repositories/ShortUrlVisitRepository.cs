@@ -46,4 +46,11 @@ public class ShortUrlVisitRepository : IShortUrlVisitRepository
             .AsNoTracking()
             .ToListAsync();
     }
+
+    public async Task ClearVisits(Guid shortUrlId)
+    {
+        await _dbContext.ShortUrlVisits
+            .Where(v => v.ShortUrlId == shortUrlId)
+            .ExecuteDeleteAsync();
+    }
 }
