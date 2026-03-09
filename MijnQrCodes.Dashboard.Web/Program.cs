@@ -6,7 +6,6 @@ using MudBlazor.Services;
 using MijnQrCodes.Application._di;
 using MijnQrCodes.Contracts.Auth;
 using MijnQrCodes.Dashboard.Web.Components;
-using MijnQrCodes.DataAccess.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -161,18 +160,6 @@ app.MapPost("/api/change-password", async (HttpContext context, IMediator mediat
 
     return Results.Redirect("/");
 }).DisableAntiforgery();
-
-app.MapGet("/r/{shortCode}", async (string shortCode, IShortUrlRepository repository, IShortUrlVisitRepository visitRepository) =>
-{
-    var shortUrl = await repository.GetByShortCode(shortCode);
-    if (shortUrl is null)
-    {
-        return Results.NotFound();
-    }
-
-    await visitRepository.RecordVisit(shortUrl.Id);
-    return Results.Redirect(shortUrl.OriginalUrl);
-}).AllowAnonymous();
 
 app.MapStaticAssets();
 app.MapRazorComponents<App>()

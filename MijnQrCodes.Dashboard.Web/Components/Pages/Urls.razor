@@ -9,7 +9,7 @@
 @inject IMediator Mediator
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
-@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
 @inject IJSRuntime JSRuntime
 
 <PageTitle>URL's - MijnQrCodes</PageTitle>
@@ -84,7 +84,7 @@
                                     </MudText>
                                     <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
                                         <MudIcon Icon="@Icons.Material.Outlined.Link" Size="Size.Small" Color="Color.Primary" />
-                                        <MudLink Href="@($"{NavigationManager.BaseUri}r/{item.ShortCode}")" Target="_blank"
+                                        <MudLink Href="@($"{Configuration["REDIRECT_HOST"]}/r/{item.ShortCode}")" Target="_blank"
                                                  Typo="Typo.body2" Style="font-weight: 500;">
                                             /r/@item.ShortCode
                                         </MudLink>
@@ -591,7 +591,7 @@
 
         var response = await Mediator.Send(new GetQrCodeQuery
         {
-            Url = $"{NavigationManager.BaseUri}r/{item.ShortCode}",
+            Url = $"{Configuration["REDIRECT_HOST"]}/r/{item.ShortCode}",
             BackgroundColor = item.BackgroundColor,
             ForegroundColor = item.ForegroundColor,
             FinderPatternColor = item.FinderPatternColor,
