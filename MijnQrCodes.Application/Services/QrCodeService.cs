@@ -79,6 +79,19 @@ public class QrCodeService : IQrCodeService
         var moduleData = qrCodeData.ModuleMatrix;
         var moduleCount = moduleData.Count;
 
+        // When a center image is present, blank out the modules that will be covered by it
+        // (the image area plus its one-module padding), so no rounded corners bleed through.
+        if (centerImageData is { Length: > 0 })
+        {
+            var centerModules = (int)Math.Ceiling(moduleCount * 0.25);
+            if (centerModules % 2 != moduleCount % 2) centerModules++;
+            var centerStart = (moduleCount - centerModules) / 2 - 1;
+            var centerEnd = centerStart + centerModules + 2;
+            for (var row = Math.Max(0, centerStart); row < Math.Min(moduleCount, centerEnd); row++)
+                for (var col = Math.Max(0, centerStart); col < Math.Min(moduleCount, centerEnd); col++)
+                    moduleData[row][col] = false;
+        }
+
         // Calculate layout dimensions:
         // - moduleSize is the pixel size of each individual module (square cell).
         // - cornerRadius controls the roundness of each module (40% of module size).
