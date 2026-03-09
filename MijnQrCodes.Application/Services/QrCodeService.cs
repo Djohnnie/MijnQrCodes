@@ -101,7 +101,13 @@ public class QrCodeService : IQrCodeService
         // Create an off-screen SkiaSharp surface with premultiplied alpha for proper blending.
         using var surface = SKSurface.Create(new SKImageInfo(size, size, SKColorType.Rgba8888, SKAlphaType.Premul));
         var canvas = surface.Canvas;
-        canvas.Clear(bgColor);
+        canvas.Clear(SKColors.Transparent);
+
+        // Draw the background as a rounded rectangle instead of filling the entire canvas,
+        // so the output PNG has a transparent border outside the QR code area.
+        var bgRectRadius = moduleSize * 2f;
+        using var bgRectPaint = new SKPaint { Color = bgColor, IsAntialias = true, Style = SKPaintStyle.Fill };
+        canvas.DrawRoundRect(new SKRoundRect(new SKRect(0, 0, size, size), bgRectRadius), bgRectPaint);
 
         // Shared paint object for all data modules (reused for performance).
         using var fgPaint = new SKPaint
