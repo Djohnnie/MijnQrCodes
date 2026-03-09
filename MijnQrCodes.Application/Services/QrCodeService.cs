@@ -127,14 +127,14 @@ public class QrCodeService : IQrCodeService
                 // When two modules are diagonally adjacent but share no orthogonal neighbor,
                 // a small arc is drawn in the gap to create a smooth, connected visual appearance
                 // instead of leaving a distracting notch between the rounded corners.
-                //if (hasTop && hasLeft && !IsDataModule(moduleData, row - 1, col - 1, moduleCount))
-                //    DrawInnerCorner(canvas, x + moduleSize / 2f, y + moduleSize / 2f, cornerRadius, 180f, fgPaint);
-                //if (hasTop && hasRight && !IsDataModule(moduleData, row - 1, col + 1, moduleCount))
-                //    DrawInnerCorner(canvas, x + moduleSize, y, cornerRadius, 270f, fgPaint);
-                //if (hasBottom && hasRight && !IsDataModule(moduleData, row + 1, col + 1, moduleCount))
-                //    DrawInnerCorner(canvas, x + moduleSize, y + moduleSize, cornerRadius, 0f, fgPaint);
-                //if (hasBottom && hasLeft && !IsDataModule(moduleData, row + 1, col - 1, moduleCount))
-                //    DrawInnerCorner(canvas, x, y + moduleSize, cornerRadius, 90f, fgPaint);
+                if (hasTop && hasLeft && !IsDataModule(moduleData, row - 1, col - 1, moduleCount))
+                    DrawInnerCorner(canvas, x, y, cornerRadius, 180f, fgPaint);
+                if (hasTop && hasRight && !IsDataModule(moduleData, row - 1, col + 1, moduleCount))
+                    DrawInnerCorner(canvas, x + moduleSize, y, cornerRadius, 270f, fgPaint);
+                if (hasBottom && hasRight && !IsDataModule(moduleData, row + 1, col + 1, moduleCount))
+                    DrawInnerCorner(canvas, x + moduleSize, y + moduleSize, cornerRadius, 0f, fgPaint);
+                if (hasBottom && hasLeft && !IsDataModule(moduleData, row + 1, col - 1, moduleCount))
+                    DrawInnerCorner(canvas, x, y + moduleSize, cornerRadius, 90f, fgPaint);
             }
         }
 
@@ -257,29 +257,30 @@ public class QrCodeService : IQrCodeService
     ///   <item><description>270° — top-right diagonal.</description></item>
     /// </list>
     /// </param>
-    /// <param name="paint">The paint to use (color is currently overridden internally — see remarks).</param>
+    /// <param name="paint">The paint (color, style) to use for filling the arc.</param>
     /// <remarks>
-    /// Note: This method currently uses a hardcoded red color (#ff0000) instead of the provided
-    /// <paramref name="paint"/> color. This appears to be a debug artifact and may need to be
-    /// updated to use the foreground paint color for production rendering.
+    /// The arc is drawn as a concave shape: the circle driving the arc is centered diagonally
+    /// away from <paramref name="cx"/>/<paramref name="cy"/>, so the arc bows <em>toward</em>
+    /// the corner rather than away from it, producing the correct inside-corner fill.
     /// </remarks>
     private static void DrawInnerCorner(SKCanvas canvas, float cx, float cy, float radius,
         float startAngle, SKPaint paint)
     {
-        // Build a pie-slice path: move to the center point, arc 90° around an oval, then close.
+        // Build a concave arc path: the circle center is offset diagonally from the corner,
+        // and the startAngle is rotated 180° so the arc curves inward toward (cx, cy).
+        var (ocx, ocy) = startAngle switch
+        {
+            180f => (cx - radius, cy - radius),
+            270f => (cx + radius, cy - radius),
+            0f   => (cx + radius, cy + radius),
+            _    => (cx - radius, cy + radius)
+        };
         using var path = new SKPath();
         path.MoveTo(cx, cy);
-        var oval = new SKRect(cx - radius, cy - radius, cx + radius, cy + radius);
-        //path.ArcTo(oval, startAngle, 90f, false);
-        path.ArcTo(oval, startAngle, 90f, false);
+        var oval = new SKRect(ocx - radius, ocy - radius, ocx + radius, ocy + radius);
+        path.ArcTo(oval, (startAngle + 180f) % 360f, 90f, false);
         path.Close();
-        using var fgPaint = new SKPaint
-        {
-            Color = SKColor.Parse("#ff0000"),
-            IsAntialias = true,
-            Style = SKPaintStyle.Fill
-        };
-        canvas.DrawPath(path, fgPaint);
+        canvas.DrawPath(path, paint);
     }
 
     /// <summary>
