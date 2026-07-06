@@ -157,11 +157,11 @@
                 <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="mb-4">
                     <MudText Typo="Typo.h6">@_selectedItem?.Title</MudText>
                     <MudStack Row Spacing="0">
-                        <MudTooltip Text="Downloaden">
-                            <MudIconButton Icon="@Icons.Material.Outlined.Download" Size="Size.Small"
-                                           Color="Color.Primary" OnClick="DownloadQrCode"
-                                           Disabled="@(_qrImageData is null)" />
-                        </MudTooltip>
+                        <MudMenu Icon="@Icons.Material.Outlined.Download" Size="Size.Small"
+                                 Color="Color.Primary" Disabled="@(_qrImageData is null)">
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Image" OnClick='() => DownloadQrCode("png")'>PNG</MudMenuItem>
+                            <MudMenuItem Icon="@Icons.Material.Outlined.Polyline" OnClick='() => DownloadQrCode("svg")'>SVG</MudMenuItem>
+                        </MudMenu>
                         <MudIconButton Icon="@Icons.Material.Outlined.Close" Size="Size.Small"
                                        OnClick="CloseQrDialog" />
                     </MudStack>
@@ -169,7 +169,7 @@
                 <div style="background: repeating-conic-gradient(#ddd 0% 25%, #fff 0% 50%) 50% / 16px 16px; border-radius: 12px; padding: 1rem; display: flex; justify-content: center;">
                     @if (_qrImageData is not null)
                     {
-                        <img src="data:image/png;base64,@Convert.ToBase64String(_qrImageData)" alt="QR Code"
+                        <img src="data:image/svg+xml;base64,@Convert.ToBase64String(_qrImageData)" alt="QR Code"
                              style="width: 360px; height: 360px; border-radius: 8px;" />
                     }
                     else
@@ -596,7 +596,8 @@
             ForegroundColor = item.ForegroundColor,
             FinderPatternColor = item.FinderPatternColor,
             CenterImageData = centerImage,
-            CenterImageColor = item.CenterImageColor
+            CenterImageColor = item.CenterImageColor,
+            Format = "svg"
         });
         _qrImageData = response.ImageData;
         StateHasChanged();
@@ -608,10 +609,35 @@
         _qrImageData = null;
     }
 
-    private async Task DownloadQrCode()
+    private async Task DownloadQrCode(string format)
     {
         if (_qrImageData is null || _selectedItem is null) return;
-        await JSRuntime.InvokeVoidAsync("downloadFile", $"{_selectedItem.Title}.png", "image/png", Convert.ToBase64String(_qrImageData));
+
+        if (format == "svg")
+        {
+            // The dialog preview already fetched the QR code in SVG format; reuse it.
+            await JSRuntime.InvokeVoidAsync("downloadFile", $"{_selectedItem.Title}.svg", "image/svg+xml", Convert.ToBase64String(_qrImageData));
+            return;
+        }
+
+        byte[]? centerImage = null;
+        if (_selectedItem.HasCenterImage)
+        {
+            var ci = await Mediator.Send(new GetCenterImageQuery { ShortUrlId = _selectedItem.Id });
+            centerImage = ci?.ImageData;
+        }
+
+        var response = await Mediator.Send(new GetQrCodeQuery
+        {
+            Url = $"{Configuration["REDIRECT_HOST"]}/r/{_selectedItem.ShortCode}",
+            BackgroundColor = _selectedItem.BackgroundColor,
+            ForegroundColor = _selectedItem.ForegroundColor,
+            FinderPatternColor = _selectedItem.FinderPatternColor,
+            CenterImageData = centerImage,
+            CenterImageColor = _selectedItem.CenterImageColor,
+            Format = "png"
+        });
+        await JSRuntime.InvokeVoidAsync("downloadFile", $"{_selectedItem.Title}.png", "image/png", Convert.ToBase64String(response.ImageData));
     }
 
     private async Task ShowStats(ShortUrlDto item)

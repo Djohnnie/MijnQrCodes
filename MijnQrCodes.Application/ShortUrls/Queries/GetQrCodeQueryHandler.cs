@@ -15,6 +15,22 @@ public class GetQrCodeQueryHandler : IRequestHandler<GetQrCodeQuery, GetQrCodeRe
 
     public Task<GetQrCodeResponse> Handle(GetQrCodeQuery request, CancellationToken cancellationToken)
     {
+        if (string.Equals(request.Format, "svg", StringComparison.OrdinalIgnoreCase))
+        {
+            var svgData = _qrCodeService.GenerateQrCodeSvg(request.Url,
+                backgroundColor: request.BackgroundColor,
+                foregroundColor: request.ForegroundColor,
+                finderPatternColor: request.FinderPatternColor,
+                centerImageData: request.CenterImageData,
+                centerImageColor: request.CenterImageColor);
+
+            return Task.FromResult(new GetQrCodeResponse
+            {
+                ImageData = svgData,
+                ContentType = "image/svg+xml"
+            });
+        }
+
         var imageData = _qrCodeService.GenerateQrCode(request.Url,
             backgroundColor: request.BackgroundColor,
             foregroundColor: request.ForegroundColor,

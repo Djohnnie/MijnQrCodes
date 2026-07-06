@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Text;
+using System.Text.RegularExpressions;
 using QRCoder;
 using SkiaSharp;
 using Svg.Skia;
@@ -67,6 +68,51 @@ public class QrCodeService : IQrCodeService
         string finderPatternColor = "#212121", byte[]? centerImageData = null,
         string? centerImageColor = null)
     {
+        // Create an off-screen SkiaSharp surface with premultiplied alpha for proper blending.
+        using var surface = SKSurface.Create(new SKImageInfo(size, size, SKColorType.Rgba8888, SKAlphaType.Premul));
+        var canvas = surface.Canvas;
+        canvas.Clear(SKColors.Transparent);
+
+        DrawQrCode(canvas, content, size, backgroundColor, foregroundColor, finderPatternColor,
+            centerImageData, centerImageColor);
+
+        // Encode the rendered surface as a PNG image and return the byte array.
+        using var image = surface.Snapshot();
+        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        return data.ToArray();
+    }
+
+    /// <summary>
+    /// Generates the same stylized QR code as <see cref="GenerateQrCode"/>, but encoded as a
+    /// scalable SVG document instead of a raster PNG. Uses SkiaSharp's <see cref="SKSvgCanvas"/>
+    /// to record the exact same drawing operations as SVG elements, so the visual result is identical.
+    /// </summary>
+    /// <returns>A UTF-8 encoded SVG document as a byte array.</returns>
+    public byte[] GenerateQrCodeSvg(string content, int size = 1024,
+        string backgroundColor = "#FFFFFF", string foregroundColor = "#212121",
+        string finderPatternColor = "#212121", byte[]? centerImageData = null,
+        string? centerImageColor = null)
+    {
+        using var stream = new MemoryStream();
+        var bounds = new SKRect(0, 0, size, size);
+        using (var canvas = SKSvgCanvas.Create(bounds, stream))
+        {
+            DrawQrCode(canvas, content, size, backgroundColor, foregroundColor, finderPatternColor,
+                centerImageData, centerImageColor);
+        }
+
+        return stream.ToArray();
+    }
+
+    /// <summary>
+    /// Renders the stylized QR code (background, rounded data modules, finder patterns, and
+    /// optional center image) onto the given canvas. Shared by both the PNG and SVG generation
+    /// paths so the two output formats stay pixel/shape identical.
+    /// </summary>
+    private static void DrawQrCode(SKCanvas canvas, string content, int size,
+        string backgroundColor, string foregroundColor, string finderPatternColor,
+        byte[]? centerImageData, string? centerImageColor)
+    {
         // Parse hex color strings into SkiaSharp color structs.
         var bgColor = SKColor.Parse(backgroundColor);
         var fgColor = SKColor.Parse(foregroundColor);
@@ -98,13 +144,8 @@ public class QrCodeService : IQrCodeService
         var moduleSize = (float)size / moduleCount;
         var cornerRadius = moduleSize * 0.4f;
 
-        // Create an off-screen SkiaSharp surface with premultiplied alpha for proper blending.
-        using var surface = SKSurface.Create(new SKImageInfo(size, size, SKColorType.Rgba8888, SKAlphaType.Premul));
-        var canvas = surface.Canvas;
-        canvas.Clear(SKColors.Transparent);
-
         // Draw the background as a rounded rectangle instead of filling the entire canvas,
-        // so the output PNG has a transparent border outside the QR code area.
+        // so the output has a transparent border outside the QR code area.
         var bgRectRadius = moduleSize * 2f;
         using var bgRectPaint = new SKPaint { Color = bgColor, IsAntialias = true, Style = SKPaintStyle.Fill };
         canvas.DrawRoundRect(new SKRoundRect(new SKRect(0, 0, size, size), bgRectRadius), bgRectPaint);
@@ -170,11 +211,6 @@ public class QrCodeService : IQrCodeService
         {
             DrawCenterImage(canvas, centerImageData, size, moduleCount, moduleSize, bgColor, centerImageColor);
         }
-
-        // Encode the rendered surface as a PNG image and return the byte array.
-        using var image = surface.Snapshot();
-        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-        return data.ToArray();
     }
 
     /// <summary>
@@ -382,8 +418,9 @@ public class QrCodeService : IQrCodeService
     /// <param name="moduleSize">The pixel size of one module.</param>
     /// <param name="bgColor">The background color used to clear the area behind the center image.</param>
     /// <param name="colorOverride">
-    /// Optional hex color string to tint SVG images. When provided, all SVG colors are replaced
-    /// using a <see cref="SKBlendMode.SrcIn"/> filter. Has no effect on raster images.
+    /// Optional hex color string to tint SVG images. When provided, the SVG markup is rewritten
+    /// (see <see cref="TintSvgMarkup"/>) so every visible fill/stroke becomes this color.
+    /// Has no effect on raster images.
     /// </param>
     private static void DrawCenterImage(SKCanvas canvas, byte[] imageData, int size,
         int moduleCount, float moduleSize, SKColor bgColor, string? colorOverride = null)
@@ -422,9 +459,15 @@ public class QrCodeService : IQrCodeService
 
         if (IsSvg(imageData))
         {
-            // SVG rendering path: load as a vector picture and scale to fit.
+            // SVG rendering path: load as a vector picture and scale to fit. When a color override
+            // is requested, the source markup is re-tinted before parsing (see TintSvgMarkup) rather
+            // than applying a ColorFilter paint at draw time: SKSvgCanvas (used for SVG export)
+            // silently drops any DrawPicture call that carries a ColorFilter, and rasterizing the
+            // tint would turn a scalable logo into an embedded bitmap. Tinting the markup keeps the
+            // result as plain vector paint, which both the raster and SVG canvases record correctly.
+            var svgSource = colorOverride is not null ? TintSvgMarkup(imageData, colorOverride) : imageData;
             using var svg = new SKSvg();
-            using var stream = new MemoryStream(imageData);
+            using var stream = new MemoryStream(svgSource);
             svg.Load(stream);
             if (svg.Picture != null)
             {
@@ -441,24 +484,7 @@ public class QrCodeService : IQrCodeService
                 canvas.Translate(centerX + (centerPixelSize - svgBounds.Width * scale) / 2f,
                                  centerY + (centerPixelSize - svgBounds.Height * scale) / 2f);
                 canvas.Scale(scale);
-
-                if (colorOverride is not null)
-                {
-                    // Apply a color tint using SrcIn blend mode: this replaces all visible
-                    // (non-transparent) pixels with the override color while preserving alpha.
-                    using var colorPaint = new SKPaint
-                    {
-                        ColorFilter = SKColorFilter.CreateBlendMode(
-                            SKColor.Parse(colorOverride), SKBlendMode.SrcIn),
-                        IsAntialias = true
-                    };
-                    canvas.DrawPicture(svg.Picture, colorPaint);
-                }
-                else
-                {
-                    canvas.DrawPicture(svg.Picture);
-                }
-
+                canvas.DrawPicture(svg.Picture);
                 canvas.Restore();
             }
         }
@@ -485,5 +511,43 @@ public class QrCodeService : IQrCodeService
         if (data.Length < 5) return false;
         var header = Encoding.UTF8.GetString(data, 0, Math.Min(data.Length, 256));
         return header.Contains("<svg", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Rewrites SVG markup so every visible fill/stroke color becomes <paramref name="colorHex"/>,
+    /// producing the same single-color silhouette a <see cref="SKBlendMode.SrcIn"/> color filter
+    /// would, but as plain vector paint instead of a per-draw color filter.
+    /// </summary>
+    /// <remarks>
+    /// Explicit <c>fill="none"</c> / <c>stroke="none"</c> declarations are left untouched so shapes
+    /// that are intentionally unpainted (e.g. an outlined checkmark cut out of a filled badge) stay
+    /// unpainted. Every other explicit fill/stroke (attribute or inline style) is stripped, and a
+    /// wrapping &lt;g&gt; element supplies <paramref name="colorHex"/> as the inherited default for
+    /// elements that had no explicit color (SVG's default fill is black).
+    /// This is a heuristic text rewrite, not a full CSS/SVG cascade resolution — it covers the
+    /// presentation-attribute and inline-style icons typically used as center logos, not
+    /// gradients, external CSS classes, or &lt;use&gt; references.
+    /// </remarks>
+    private static byte[] TintSvgMarkup(byte[] svgData, string colorHex)
+    {
+        var svgText = Encoding.UTF8.GetString(svgData);
+
+        svgText = Regex.Replace(svgText, @"\bfill\s*=\s*(?<q>[""'])(?!none\k<q>)[^""']*\k<q>", "", RegexOptions.IgnoreCase);
+        svgText = Regex.Replace(svgText, @"\bstroke\s*=\s*(?<q>[""'])(?!none\k<q>)[^""']*\k<q>", "", RegexOptions.IgnoreCase);
+        svgText = Regex.Replace(svgText, @"(?<![-\w])fill\s*:\s*(?!none\b)[^;""']+;?", "", RegexOptions.IgnoreCase);
+        svgText = Regex.Replace(svgText, @"(?<![-\w])stroke\s*:\s*(?!none\b)[^;""']+;?", "", RegexOptions.IgnoreCase);
+
+        var svgTagStart = svgText.IndexOf("<svg", StringComparison.OrdinalIgnoreCase);
+        var openTagEnd = svgTagStart >= 0 ? svgText.IndexOf('>', svgTagStart) : -1;
+        var closeTagStart = svgText.LastIndexOf("</svg>", StringComparison.OrdinalIgnoreCase);
+        if (openTagEnd < 0 || closeTagStart < 0 || closeTagStart <= openTagEnd) return svgData;
+
+        var wrapped = svgText[..(openTagEnd + 1)]
+            + $"<g fill=\"{colorHex}\" stroke=\"{colorHex}\">"
+            + svgText[(openTagEnd + 1)..closeTagStart]
+            + "</g>"
+            + svgText[closeTagStart..];
+
+        return Encoding.UTF8.GetBytes(wrapped);
     }
 }
