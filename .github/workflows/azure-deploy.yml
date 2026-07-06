@@ -1,0 +1,67 @@
+name: Deploy to Azure App Service
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  deploy-api:
+    name: Build and deploy Api
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.webapp-url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore MijnQrCodes.Api/MijnQrCodes.Api.csproj
+
+      - name: Publish
+        run: dotnet publish MijnQrCodes.Api/MijnQrCodes.Api.csproj -c Release -o ${{ github.workspace }}/publish/api
+
+      - name: Deploy to Azure App Service
+        id: deploy
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: mijnqrcodes
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_API }}
+          package: ${{ github.workspace }}/publish/api
+
+  deploy-dashboard:
+    name: Build and deploy Dashboard.Web
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.deploy.outputs.webapp-url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Restore
+        run: dotnet restore MijnQrCodes.Dashboard.Web/MijnQrCodes.Dashboard.Web.csproj
+
+      - name: Publish
+        run: dotnet publish MijnQrCodes.Dashboard.Web/MijnQrCodes.Dashboard.Web.csproj -c Release -o ${{ github.workspace }}/publish/dashboard
+
+      - name: Deploy to Azure App Service
+        id: deploy
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: mijnqradmin
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE_DASHBOARD }}
+          package: ${{ github.workspace }}/publish/dashboard
