@@ -47,6 +47,15 @@ public class ShortUrlVisitRepository : IShortUrlVisitRepository
             .ToListAsync();
     }
 
+    public async Task<Dictionary<Guid, int>> GetVisitCounts()
+    {
+        return await _dbContext.ShortUrlVisits
+            .AsNoTracking()
+            .GroupBy(v => v.ShortUrlId)
+            .Select(g => new { ShortUrlId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.ShortUrlId, x => x.Count);
+    }
+
     public async Task ClearVisits(Guid shortUrlId)
     {
         await _dbContext.ShortUrlVisits

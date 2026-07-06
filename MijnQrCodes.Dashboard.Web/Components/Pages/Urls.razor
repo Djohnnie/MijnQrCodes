@@ -24,6 +24,24 @@
         </MudButton>
     </MudStack>
 
+    @if (_shortUrls.Count > 0)
+    {
+        <MudStack Row AlignItems="AlignItems.Center" Class="mb-4" Spacing="3" Wrap="Wrap.Wrap">
+            <MudTextField T="string" Value="_searchText" ValueChanged="OnSearchChanged" Immediate
+                          Placeholder="Zoek op titel..." Variant="Variant.Outlined" Margin="Margin.Dense"
+                          Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Outlined.Search"
+                          Style="min-width: 240px;" Clearable="true" />
+            <MudSelect T="SortOption" Value="_sortOption" ValueChanged="OnSortChanged"
+                       Variant="Variant.Outlined" Margin="Margin.Dense" Style="min-width: 200px;"
+                       AnchorOrigin="Origin.BottomCenter">
+                <MudSelectItem Value="SortOption.CreatedDesc">Nieuwste eerst</MudSelectItem>
+                <MudSelectItem Value="SortOption.CreatedAsc">Oudste eerst</MudSelectItem>
+                <MudSelectItem Value="SortOption.VisitsDesc">Meest bezocht</MudSelectItem>
+                <MudSelectItem Value="SortOption.VisitsAsc">Minst bezocht</MudSelectItem>
+            </MudSelect>
+        </MudStack>
+    }
+
     @if (_allTags.Count > 0)
     {
         <MudStack Row AlignItems="AlignItems.Center" Class="mb-4" Spacing="2" Wrap="Wrap.Wrap">
@@ -68,10 +86,27 @@
             </MudButton>
         </MudPaper>
     }
+    else if (_groupedUrls.Count == 0)
+    {
+        <MudPaper Elevation="0" Class="pa-12 rounded-lg d-flex flex-column align-center"
+                  Style="border: 2px dashed var(--mud-palette-lines-default);">
+            <MudIcon Icon="@Icons.Material.Outlined.SearchOff" Size="Size.Large" Color="Color.Tertiary"
+                     Style="font-size: 4rem;" />
+            <MudText Typo="Typo.h6" Color="Color.Tertiary" Class="mt-4">Geen resultaten</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Tertiary" Class="mt-1">
+                Er zijn geen URL's die aan de zoekopdracht of filters voldoen
+            </MudText>
+        </MudPaper>
+    }
     else
     {
-        <MudGrid Spacing="3">
-            @foreach (var item in _filteredUrls)
+        @foreach (var group in _groupedUrls)
+        {
+            <MudText Typo="Typo.subtitle2" Color="Color.Tertiary" Class="mt-6 mb-3" Style="font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">
+                @group.Name (@group.Items.Count)
+            </MudText>
+            <MudGrid Spacing="3">
+            @foreach (var item in group.Items)
             {
                 <MudItem xs="12" sm="6" md="4">
                     <MudPaper Elevation="0" Class="rounded-lg url-card"
@@ -113,9 +148,15 @@
                             }
                             <MudDivider Class="my-3" />
                             <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-                                <MudText Typo="Typo.caption" Color="Color.Tertiary">
-                                    @item.CreatedAt.ToString("dd MMM yyyy")
-                                </MudText>
+                                <MudStack Row AlignItems="AlignItems.Center" Spacing="3">
+                                    <MudText Typo="Typo.caption" Color="Color.Tertiary">
+                                        @item.CreatedAt.ToString("dd MMM yyyy")
+                                    </MudText>
+                                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                        <MudIcon Icon="@Icons.Material.Outlined.Visibility" Size="Size.Small" Color="Color.Tertiary" Style="font-size: 1rem;" />
+                                        <MudText Typo="Typo.caption" Color="Color.Tertiary">@item.VisitCount</MudText>
+                                    </MudStack>
+                                </MudStack>
                                 <MudStack Row Spacing="0">
                                     <MudTooltip Text="QR Code">
                                         <MudIconButton Icon="@Icons.Material.Outlined.QrCode2" Size="Size.Small"
@@ -143,7 +184,8 @@
                     </MudPaper>
                 </MudItem>
             }
-        </MudGrid>
+            </MudGrid>
+        }
     }
 </MudContainer>
 
@@ -398,9 +440,13 @@
 </style>
 
 @code {
+    private enum SortOption { CreatedDesc, CreatedAsc, VisitsDesc, VisitsAsc }
+
     private List<ShortUrlDto> _shortUrls = [];
     private List<TagDto> _allTags = [];
     private IReadOnlyCollection<Guid> _selectedFilterTags = [];
+    private string _searchText = string.Empty;
+    private SortOption _sortOption = SortOption.CreatedDesc;
     private bool _loading = true;
 
     private bool _showQrDialog;
@@ -426,9 +472,48 @@
     private bool _formRemoveCenterImage;
 
     private List<ShortUrlDto> _filteredUrls =>
-        _selectedFilterTags.Count == 0
-            ? _shortUrls
-            : _shortUrls.Where(u => u.Tags.Any(t => _selectedFilterTags.Contains(t.Id))).ToList();
+        _shortUrls
+            .Where(u => _selectedFilterTags.Count == 0 || u.Tags.Count == 0 || u.Tags.Any(t => _selectedFilterTags.Contains(t.Id)))
+            .Where(u => string.IsNullOrWhiteSpace(_searchText) || u.Title.Contains(_searchText, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+    private List<(string Name, List<ShortUrlDto> Items)> _groupedUrls
+    {
+        get
+        {
+            var now = DateTime.UtcNow;
+            var monthCutoff = now.AddDays(-30);
+            var yearCutoff = now.AddDays(-365);
+            var filtered = _filteredUrls;
+
+            var groups = new List<(string Name, List<ShortUrlDto> Items)>
+            {
+                ("Laatste maand", Sorted(filtered.Where(u => u.CreatedAt >= monthCutoff))),
+                ("Laatste jaar", Sorted(filtered.Where(u => u.CreatedAt < monthCutoff && u.CreatedAt >= yearCutoff))),
+                ("Ouder", Sorted(filtered.Where(u => u.CreatedAt < yearCutoff)))
+            };
+
+            return groups.Where(g => g.Items.Count > 0).ToList();
+        }
+    }
+
+    private List<ShortUrlDto> Sorted(IEnumerable<ShortUrlDto> items) => (_sortOption switch
+    {
+        SortOption.CreatedAsc => items.OrderBy(u => u.CreatedAt),
+        SortOption.VisitsDesc => items.OrderByDescending(u => u.VisitCount).ThenByDescending(u => u.CreatedAt),
+        SortOption.VisitsAsc => items.OrderBy(u => u.VisitCount).ThenByDescending(u => u.CreatedAt),
+        _ => items.OrderByDescending(u => u.CreatedAt)
+    }).ToList();
+
+    private void OnSearchChanged(string value)
+    {
+        _searchText = value;
+    }
+
+    private void OnSortChanged(SortOption value)
+    {
+        _sortOption = value;
+    }
 
     protected override async Task OnInitializedAsync()
     {

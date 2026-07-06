@@ -7,15 +7,18 @@ namespace MijnQrCodes.Application.ShortUrls.Queries;
 public class GetShortUrlsQueryHandler : IRequestHandler<GetShortUrlsQuery, GetShortUrlsResponse>
 {
     private readonly IShortUrlRepository _repository;
+    private readonly IShortUrlVisitRepository _visitRepository;
 
-    public GetShortUrlsQueryHandler(IShortUrlRepository repository)
+    public GetShortUrlsQueryHandler(IShortUrlRepository repository, IShortUrlVisitRepository visitRepository)
     {
         _repository = repository;
+        _visitRepository = visitRepository;
     }
 
     public async Task<GetShortUrlsResponse> Handle(GetShortUrlsQuery request, CancellationToken cancellationToken)
     {
         var shortUrls = await _repository.GetAll();
+        var visitCounts = await _visitRepository.GetVisitCounts();
 
         return new GetShortUrlsResponse
         {
@@ -30,6 +33,7 @@ public class GetShortUrlsQueryHandler : IRequestHandler<GetShortUrlsQuery, GetSh
                 FinderPatternColor = x.FinderPatternColor,
                 HasCenterImage = x.CenterImageData is { Length: > 0 },
                 CenterImageColor = x.CenterImageColor,
+                VisitCount = visitCounts.GetValueOrDefault(x.Id),
                 Tags = x.ShortUrlTags.Select(t => new ShortUrlTagDto
                 {
                     Id = t.Tag.Id,
