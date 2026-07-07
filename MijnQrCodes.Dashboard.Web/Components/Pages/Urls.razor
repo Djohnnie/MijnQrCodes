@@ -385,7 +385,7 @@
                     <MudTabs Elevation="0" Rounded ApplyEffectsToContainer>
                         <MudTabPanel Text="30 dagen">
                             <div class="pt-3">
-                                <ApexChart TItem="VisitDataPoint" Height="280">
+                                <ApexChart @key="_statsKey" TItem="VisitDataPoint" Height="280">
                                     <ApexPointSeries TItem="VisitDataPoint"
                                                      Items="_visitStats.DailyVisits"
                                                      SeriesType="SeriesType.Area"
@@ -397,7 +397,7 @@
                         </MudTabPanel>
                         <MudTabPanel Text="12 weken">
                             <div class="pt-3">
-                                <ApexChart TItem="VisitDataPoint" Height="280">
+                                <ApexChart @key="_statsKey" TItem="VisitDataPoint" Height="280">
                                     <ApexPointSeries TItem="VisitDataPoint"
                                                      Items="_visitStats.WeeklyVisits"
                                                      SeriesType="SeriesType.Bar"
@@ -409,7 +409,7 @@
                         </MudTabPanel>
                         <MudTabPanel Text="12 maanden">
                             <div class="pt-3">
-                                <ApexChart TItem="VisitDataPoint" Height="280">
+                                <ApexChart @key="_statsKey" TItem="VisitDataPoint" Height="280">
                                     <ApexPointSeries TItem="VisitDataPoint"
                                                      Items="_visitStats.MonthlyVisits"
                                                      SeriesType="SeriesType.Bar"
@@ -456,6 +456,7 @@
     private bool _showStatsDialog;
     private bool _statsLoading;
     private GetVisitStatsResponse? _visitStats;
+    private object _statsKey = new();
 
     private bool _showFormDialog;
     private bool _isEditing;
@@ -733,6 +734,7 @@
         _showStatsDialog = true;
 
         _visitStats = await Mediator.Send(new GetVisitStatsQuery { ShortUrlId = item.Id });
+        _statsKey = new object();
         _statsLoading = false;
         StateHasChanged();
     }
